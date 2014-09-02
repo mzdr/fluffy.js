@@ -1,0 +1,10 @@
+# gulp project files
+node_modules/
+bower_components/
+
+# temporary files
+.sass-cache
+
+# junk
+.DS_Store
+Thumbs.db
