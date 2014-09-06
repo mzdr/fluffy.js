@@ -7,7 +7,7 @@
  */
 (function(window){"use strict";var nativeRequestAnimationFrame,nativeCancelAnimationFrame;(function(){var i,vendors=["webkit","moz","ms","o"],top;try{window.top.name;top=window.top}catch(e){top=window}nativeRequestAnimationFrame=top.requestAnimationFrame;nativeCancelAnimationFrame=top.cancelAnimationFrame||top.cancelRequestAnimationFrame;for(i=0;i<vendors.length&&!nativeRequestAnimationFrame;i++){nativeRequestAnimationFrame=top[vendors[i]+"RequestAnimationFrame"];nativeCancelAnimationFrame=top[vendors[i]+"CancelAnimationFrame"]||top[vendors[i]+"CancelRequestAnimationFrame"]}nativeRequestAnimationFrame&&nativeRequestAnimationFrame(function(){AnimationFrame.hasNative=true})})();function AnimationFrame(options){if(!(this instanceof AnimationFrame))return new AnimationFrame(options);options||(options={});if(typeof options=="number")options={frameRate:options};options.useNative!=null||(options.useNative=true);this.options=options;this.frameRate=options.frameRate||AnimationFrame.FRAME_RATE;this._frameLength=1e3/this.frameRate;this._isCustomFrameRate=this.frameRate!==AnimationFrame.FRAME_RATE;this._timeoutId=null;this._callbacks={};this._lastTickTime=0;this._tickCounter=0}AnimationFrame.FRAME_RATE=60;AnimationFrame.shim=function(options){var animationFrame=new AnimationFrame(options);window.requestAnimationFrame=function(callback){return animationFrame.request(callback)};window.cancelAnimationFrame=function(id){return animationFrame.cancel(id)};return animationFrame};AnimationFrame.now=Date.now||function(){return(new Date).getTime()};AnimationFrame.navigationStart=AnimationFrame.now();AnimationFrame.perfNow=function(){if(window.performance&&window.performance.now)return window.performance.now();return AnimationFrame.now()-AnimationFrame.navigationStart};AnimationFrame.hasNative=false;AnimationFrame.prototype.request=function(callback){var self=this,delay;++this._tickCounter;if(AnimationFrame.hasNative&&self.options.useNative&&!this._isCustomFrameRate){return nativeRequestAnimationFrame(callback)}if(!callback)throw new TypeError("Not enough arguments");if(this._timeoutId==null){delay=this._frameLength+this._lastTickTime-AnimationFrame.now();if(delay<0)delay=0;this._timeoutId=window.setTimeout(function(){var id;self._lastTickTime=AnimationFrame.now();self._timeoutId=null;++self._tickCounter;for(id in self._callbacks){if(self._callbacks[id]){if(AnimationFrame.hasNative&&self.options.useNative){nativeRequestAnimationFrame(self._callbacks[id])}else{self._callbacks[id](AnimationFrame.perfNow())}delete self._callbacks[id]}}},delay)}this._callbacks[this._tickCounter]=callback;return this._tickCounter};AnimationFrame.prototype.cancel=function(id){if(AnimationFrame.hasNative&&this.options.useNative)nativeCancelAnimationFrame(id);delete this._callbacks[id]};if(typeof exports=="object"&&typeof module=="object"){module.exports=AnimationFrame}else if(typeof define=="function"&&define.amd){define(function(){return AnimationFrame})}else{window.AnimationFrame=AnimationFrame}})(window);
 
-/*! Fluffy.js 1.0.0
+/*! Fluffy.js 1.1.0
  *
  * Sebastian Prein
  * Copyright 2014, MIT License
@@ -53,61 +53,51 @@
 
         // automatically adjust the height of the content container either
         // relative to the smallest or tallest element found
-        // allowed values: null, tallest, smallest
-        smartHeight: null,
+        // allowed values: false, tallest, smallest
+        smartHeight: false,
 
         // the stage holding the scrollable content
         stageSelector: '#fluffy-stage',
 
-        // if no trigger selector is given, the parent node of the content
-        // selector is also the trigger area
-        // triggerSelector: null,
+        // if no trigger selector is given, the Fluffy container is also
+        // the trigger area
+        triggerSelector: null,
 
         // define which axis to trigger movement for
         // allowed values: x, y, xy
-        // triggerDirection: 'x'
+        triggerDirection: 'x',
+
+        // the higher the value the more lazier the reaction to the
+        // mouse movement will be
+        mouseDamp: 20,
+
+        // adds space (in pixel) to the trigger area where no action happens
+        mousePadding: 60
     };
 
     // dom elements
-    var my = { container: null, scrollbar: null, stage: null, content: null, items: null };
+    var my = { container: null, scrollbar: {}, stage: null, content: null, items: null };
 
     // user settings
     var settings;
 
-    // mouse data
+    // mouse data, initial values
     var mouse =
     {
-        // last position
-        last: 0,
-
-        // real position
-        real: 0,
-
-        // modified position
-        fake: 0,
-
-        // move padding
-        padding: 60,
-
-        // response softness
-        damp: 20,
-
-        // available moving area
-        moveArea: 0,
-
-        // fidderence ratio based on moving area
-        fidderenceRatio: 0,
-
-        // interval watching mouse position
-        observer: null
+        real: { x: 0, y: 0 },
+        fake: { x: 0, y: 0 },
+        last: { x: 0, y: 0 },
+        observer:
+        {
+            start: null,
+            stop: null,
+            status: null,
+            process: { run: false }
+        }
     }
 
-    // calculation data
-    var calc = {
-
-        // width difference ratio betwen container and stage
-        widthRatio: 0
-    }
+    // several ratios
+    var ratio = {}
 
 
     /**
@@ -119,28 +109,41 @@
     Fluffy.init = function (options)
     {
         // set version
-        Fluffy.version = '1.0.0';
-
-        // use default settings and override options if given
-        settings = defaults;
-
-        if (options !== undefined && options !== null && typeof options === 'object')
-            Object.keys(options).forEach(function (key)
-            {
-                if (settings[key] !== undefined)
-                    settings[key] = options[key];
-            });
+        Fluffy.version = '1.1.0';
 
         // feature test
         if (!supports)
             return _debug('Browser has no support for \'querySelector\' or \'addEventListener\'.');
 
-        // check for dom elements
-        my.container = getContainer();
-        my.scrollbar = getScrollbar();
-        my.stage = getStage();
-        my.content = getContent();
-        my.items = getItems();
+        // active requestAnimationFrame shim
+        window.AnimationFrame.shim();
+
+        // use default settings and override options if given
+        settings = defaults;
+
+        if (options !== undefined && options !== null && typeof options === 'object')
+        {
+            Object.keys(options).forEach(function (key)
+            {
+                if (settings[key] !== undefined)
+                    settings[key] = options[key];
+            });
+        }
+
+        // just a precaution
+        settings.triggerDirection = settings.triggerDirection.toLowerCase();
+
+        // try to get all necessary dom elements
+        try
+        {
+            my.container = getContainer();
+            my.trigger = getTrigger();
+            my.scrollbar = getScrollbar();
+            my.stage = getStage();
+            my.content = getContent();
+            my.items = getItems();
+        }
+        catch (e) { return _debug(e.message); }
 
         registerListeners();
     };
@@ -155,6 +158,7 @@
         for (var i = 0, contentWidth = 0; i < my.items.length; i++)
             contentWidth += my.items[i].offsetWidth;
 
+        // 1px buffer
         return contentWidth;
     }
 
@@ -192,7 +196,7 @@
         if (!settings.debug || (!window.console || !console.debug))
             return;
 
-        console.debug('Fluffy: ' + message);
+        console.debug('Fluffy: ' + JSON.stringify(message));
     };
 
     /**
@@ -239,27 +243,25 @@
      */
     function _requestInterval (fn, delay)
     {
-        if (!window.requestAnimationFrame)
-            return window.setInterval(fn, delay);
-
         var start = AnimationFrame.now(),
-            handle = new Object();
+            handle = { run: true };
 
         function loop()
         {
             var current = AnimationFrame.now(),
                 delta = current - start;
 
-            if (delta >= delay)
+            if (delta >= delay && handle.run)
             {
                 fn.call();
                 start = AnimationFrame.now();
             }
 
-            handle.value = requestAnimationFrame(loop);
+            handle.value = window.requestAnimationFrame(loop);
         };
 
-        handle.value = requestAnimationFrame(loop);
+        handle.value = window.requestAnimationFrame(loop);
+
         return handle;
     }
 
@@ -272,7 +274,8 @@
      */
     function _clearInterval (handle)
     {
-        window.cancelAnimationFrame ? window.cancelAnimationFrame(handle.value) : clearInterval(handle);
+        window.cancelAnimationFrame(handle.value);
+        handle.run = false;
     }
 
     /**
@@ -314,9 +317,25 @@
         my.container = document.querySelector(settings.containerSelector);
 
         if (my.container === null)
-            _debug('Container \'' + settings.containerSelector + '\' not found.');
+            throw Error('Container \'' + settings.containerSelector + '\' is undefined.');
 
         return my.container;
+    };
+
+    /**
+     * Returns the Fluffy trigger element.
+     *
+     * @private
+     */
+    function getTrigger ()
+    {
+        // use trigger selector if given
+        my.trigger = (settings.triggerSelector === null) ? getContainer() : document.querySelector(settings.triggerSelector);
+
+        if (my.trigger === null)
+            throw Error('Trigger \'' + settings.containerSelector + '\' is undefined.');
+
+        return my.trigger;
     };
 
     /**
@@ -329,7 +348,7 @@
         my.stage = document.querySelector(settings.stageSelector);
 
         if (my.stage === null)
-            _debug('Stage \'' + settings.stageSelector + '\' not found.');
+            throw Error('Stage \'' + settings.stageSelector + '\' is undefined.');
 
         return my.stage;
     };
@@ -344,7 +363,7 @@
         my.content = document.querySelector(settings.contentSelector);
 
         if (my.content === null)
-            _debug('Content \'' + settings.contentSelector + '\' not found.');
+            throw Error('Content \'' + settings.contentSelector + '\' is undefined.');
 
         return my.content;
     };
@@ -368,12 +387,43 @@
      */
     function getScrollbar ()
     {
-        my.scrollbar = document.querySelector(settings.scrollbarSelector);
+        // scrollbar disabled
+        if (!settings.showScrollbar)
+            return;
 
-        if (my.scrollbar === null)
-            _debug('scrollbar \'' + settings.scrollbarSelector + '\' not found.');
+        // try to get scrollbar container
+        var scrollbar = document.querySelector(settings.scrollbarSelector);
+
+        if (scrollbar === null)
+            throw Error('Scrollbar \'' + settings.scrollbarSelector + '\' is undefined.');
+
+        // add horizontal scrollbar
+        if (settings.triggerDirection.indexOf('x') >= 0)
+        {
+            my.scrollbar.left = document.createElement('span');
+            scrollbar.appendChild(my.scrollbar.left);
+            _addClass(my.scrollbar.left, 'is-left');
+        }
+
+        // add vertical scrollbar
+        if (settings.triggerDirection.indexOf('y') >= 0)
+        {
+            my.scrollbar.top = document.createElement('span');
+            scrollbar.appendChild(my.scrollbar.top);
+            _addClass(my.scrollbar.top, 'is-top');
+        }
 
         return my.scrollbar;
+    };
+
+    /**
+     * Returns the total scrollable height.
+     *
+     * @private
+     */
+    function getScrollableHeight ()
+    {
+        return my.content.offsetHeight - my.stage.offsetHeight;
     };
 
     /**
@@ -387,46 +437,127 @@
     };
 
     /**
-     * Returns the position of the scrollbar relative to the current scrolled
+     * Returns the mouse position within the trigger area.
+     *
+     * @private
+     * @param {object} e Mouse moving event.
+     */
+    function getMousePosition (e)
+    {
+        /**
+         * normalizing the offsetX, offsetY. thanks jack moore!
+         * @see http://www.jacklmoore.com/notes/mouse-position/
+         */
+        e = e || window.event;
+
+        var style = my.trigger.currentStyle || window.getComputedStyle(my.trigger, null),
+            rect = my.trigger.getBoundingClientRect(),
+
+            // trigger element borders
+            border = {
+                left: parseInt(style.borderLeftWidth, 10),
+                right: parseInt(style.borderRightWidth, 10),
+                top: parseInt(style.borderTopWidth, 10),
+                bottom: parseInt(style.borderBottomWidth, 10)
+            },
+
+            // the border width and offset needs to be subtracted from the mouse position
+            gap = {
+                left: rect.left + border.left,
+                right: border.left + border.right,
+                bottom: border.top + border.bottom,
+                top: rect.top + border.top
+            };
+
+        // retrieve value between 0 > value <= rect.{width,height}
+        return {
+            x: (settings.triggerDirection.indexOf('x') >= 0) ? Math.min(Math.max(0, e.clientX - gap.left), rect.width - gap.right) : 0,
+            y: (settings.triggerDirection.indexOf('y') >= 0) ? Math.min(Math.max(0, e.clientY - gap.top), rect.height - gap.bottom) : 0
+        };
+    };
+
+    /**
+     * Returns the fake mouse position which is adjusted to the set padding and
+     * mapped to the stage position.
+     *
+     * @private
+     */
+    function getFakeMousePosition ()
+    {
+        // retrieve value between 0 > value <= rect.{width,height}
+        return {
+            x: (settings.triggerDirection.indexOf('x') >= 0) ? Math.min(Math.max(0, mouse.real.x - settings.mousePadding), mouse.moveArea.width) * ratio.moveAreaToContent.width : 0,
+            y: (settings.triggerDirection.indexOf('y') >= 0) ? Math.min(Math.max(0, mouse.real.y - settings.mousePadding), mouse.moveArea.height) * ratio.moveAreaToContent.height : 0
+        };
+    };
+
+    /**
+     * Updates the size of the content element according the the calculated
+     * width and height.
+     *
+     * @private
+     */
+    function updateContentSize ()
+    {
+        // set content width
+        my.content.style.width = Fluffy.getContentWidth() + 'px';
+
+        // if y-axis should be triggered or smart height is enabled
+        // set stage height aswell
+        if (settings.triggerDirection.indexOf('y') >= 0 || settings.smartHeight !== false)
+            my.content.style.height = Fluffy.getContentHeight()[(settings.smartHeight === 'smallest') ? 0 : 1] + 'px';
+    };
+
+    /**
+     * Updates the position of the scrollbar relative to the current scrolled
      * position within the content area.
      *
      * @private
      */
-    function getScrollbarPosition ()
+    function updateScrollbarPosition ()
     {
-        return (my.stage.scrollLeft / getScrollableWidth() * (100 - (my.scrollbar.offsetWidth / my.stage.offsetWidth * 100))) + '%' ;
+        if (!settings.showScrollbar)
+            return;
+
+        if (settings.triggerDirection.indexOf('x') >= 0)
+            my.scrollbar.left.style.left = my.stage.scrollLeft / getScrollableWidth() * (1 - my.scrollbar.left.offsetWidth / my.stage.offsetWidth) * 100 + '%';
+
+        if (settings.triggerDirection.indexOf('y') >= 0)
+            my.scrollbar.top.style.top = my.stage.scrollTop / getScrollableHeight() * (1 - my.scrollbar.top.offsetHeight / my.stage.offsetHeight) * 100 + '%';
     };
 
     /**
-     * Returns the scrolling position relative to the given position data.
+     * Scrolls the stage to the given position according to the trigger axis set.
      *
      * @private
-     * @param {int} pos Mouse position.
      */
-    function getScrollPosition (pos)
+    function scrollStageTo (pos)
     {
-        // position relative to container and stage (if it's got an offset)
-        pos -= my.container.offsetLeft - my.stage.offsetLeft;
+        if (settings.triggerDirection.indexOf('x') >= 0)
+            my.stage.scrollLeft = pos.x;
 
-        // new scroll position
-        return Math.min(Math.max(0, pos), my.container.offsetWidth);
-    };
+        if (settings.triggerDirection.indexOf('y') >= 0)
+            my.stage.scrollTop = pos.y;
+    }
 
     /**
      * Runs several calculations needed for proper scrolling animation.
      *
      * @private
      */
-    function runCalculations ()
+    function calculateRatios ()
     {
-        // width ratio between content and stage
-        calc.widthRatio = (my.content.offsetWidth / my.stage.offsetWidth) - 1;
-
         // available mousemove area
-        mouse.moveArea = my.stage.offsetWidth - (mouse.padding * 2);
+        mouse.moveArea = {
+            width: my.trigger.offsetWidth - (settings.mousePadding * 2),
+            height: my.trigger.offsetHeight - (settings.mousePadding * 2)
+        };
 
-        // available mousemove fidderence ratio
-        mouse.fidderenceRatio = (my.stage.offsetWidth / mouse.moveArea);
+        // map position in moving area to content position
+        ratio.moveAreaToContent = {
+            width: getScrollableWidth() / mouse.moveArea.width,
+            height: getScrollableHeight() / mouse.moveArea.height
+        };
     }
 
     /**
@@ -437,75 +568,110 @@
      */
     function registerListeners ()
     {
-        // gimme fake scrollbar (not on touch)
-        if (settings.showScrollbar && !isTouch)
-        {
-            _addClass(my.container, 'has-scrollbar');
-
-            // update scrollbar position on scroll
-            my.stage.addEventListener('scroll', function (e)
-            {
-                my.scrollbar.style.left = getScrollbarPosition();
-            });
-        }
-
         // use native scrolling on touch device (see css)
         if (isTouch)
             _addClass(my.container, 'is-touch');
 
-        window.onload = function ()
+        window.addEventListener('load', function ()
         {
             // remove loading state
             if (my.container)
                 _removeClass(my.container, 'is-loading');
 
-            // set content width
-            my.content.style.width = Fluffy.getContentWidth() + 'px';
-
-            // if enabled the stage will get the height
-            // of the smallest/tallest element
-            if (settings.smartHeight !== null)
-            {
-                my.container.style.height = 'auto';
-                my.stage.style.height = Fluffy.getContentHeight()[(settings.smartHeight === 'smallest') ? 0 : 1] + 'px';
-            }
+            // update content sizes
+            updateContentSize();
 
             // stop right here if touch device!
             if (isTouch)
                 return;
 
-            // run important calculations
-            runCalculations();
-
-            my.stage.addEventListener('mousemove', function (e)
+            // gimme fake scrollbar
+            if (settings.showScrollbar)
             {
-                mouse.real = getScrollPosition(e.pageX);
-                mouse.fake = Math.floor(Math.min(Math.max(0, mouse.real - mouse.padding), mouse.moveArea) * mouse.fidderenceRatio);
+                _addClass(my.container, 'has-scrollbar');
+
+                // update scrollbar position on scroll
+                my.stage.addEventListener('scroll', function (e) { updateScrollbarPosition(); });
+            }
+
+            // run important calculations
+            calculateRatios();
+
+            my.trigger.addEventListener('mousemove', function (e)
+            {
+                // start mouse observer if not already started
+                if (mouse.observer.status() === false)
+                    mouse.observer.start();
+
+                // get real mouse position in trigger area
+                mouse.real = getMousePosition(e);
+
+                // get fake mouse position (adjusted to set padding, mapped to stage position)
+                mouse.fake = getFakeMousePosition();
             });
 
-            // run mouse observer
-            mouse.observer = _requestInterval(function()
+            // start mouse observer
+            mouse.observer.start = function ()
             {
-                // zeno's paradox equation "catching delay"
-                mouse.last += (mouse.fake - mouse.last) / mouse.damp;
+                // add modifier to container that it's moving
+                _addClass(my.container, 'is-moving');
 
-                // update scroll
-                my.stage.scrollLeft = mouse.last * calc.widthRatio;
+                mouse.observer.process = _requestInterval(function()
+                {
+                    // make mouse move triggering more lazy
+                    var add = {
+                        x: (mouse.fake.x - mouse.last.x) / settings.mouseDamp,
+                        y: (mouse.fake.y - mouse.last.y) / settings.mouseDamp
+                    }
 
-            }, 10);
-        }
+                    // stop observing as no movement is going on
+                    if (mouse.observer.status() && Math.abs(add.x) < 0.001 && Math.abs(add.y) < 0.001)
+                    {
+                        // stop observing
+                        mouse.observer.stop();
 
-        window.onresize = function ()
+                        // remove modifier
+                        _removeClass(my.container, 'is-moving');
+                    }
+
+                    // scroll to new position
+                    scrollStageTo({
+                        x: (mouse.last.x += add.x),
+                        y: (mouse.last.y += add.y)
+                    });
+
+                }, 10);
+            }
+
+            // stop mouse observer
+            mouse.observer.stop = function () { _clearInterval(mouse.observer.process); }
+
+            // mouse observer status
+            mouse.observer.status = function () { return mouse.observer.process.run; }
+        });
+
+        // we're gonna debounce the resize event...
+        var debounce;
+
+        window.addEventListener('resize', function ()
         {
-            // run important calculations
-            runCalculations();
+            // wait for it
+            if (debounce)
+                clearTimeout(debounce);
 
-            // set content width
-            my.content.style.width = Fluffy.getContentWidth() + 'px';
+            debounce = setTimeout(function () {
 
-            // update scrollbar if shown
-            if (settings.showScrollbar)
-                my.scrollbar.style.left = getScrollbarPosition();
-        }
+                // first update sizes then
+                updateContentSize();
+
+                // run important calculations
+                calculateRatios();
+
+                // update scrollbar if shown
+                updateScrollbarPosition();
+
+            }, 100);
+
+        });
     }
 }).call(this);
