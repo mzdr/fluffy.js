@@ -18,7 +18,9 @@ Just download the latest version from here and move it to your project. In your 
     <div id="fluffy-scrollbar" class="fluffy-scrollbar"></div>
     <div id="fluffy-stage" class="fluffy-stage">
         <ul id="fluffy-content" class="fluffy-content">
-            <li class="fluffy-item">…</li>
+            <li class="fluffy-item">
+                <!-- your content -->
+            </li>
             …
         </ul>
     </div>
