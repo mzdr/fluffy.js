@@ -111,10 +111,6 @@
         // set version
         Fluffy.version = '1.1.0';
 
-        // feature test
-        if (!supports)
-            return _debug('Browser has no support for \'querySelector\' or \'addEventListener\'.');
-
         // active requestAnimationFrame shim
         window.AnimationFrame.shim();
 
@@ -130,8 +126,15 @@
             });
         }
 
+        // feature test
+        if (!supports)
+            return _debug('Browser has no support for \'querySelector\' or \'addEventListener\'.');
+
         // just a precaution
         settings.triggerDirection = settings.triggerDirection.toLowerCase();
+
+        _debug('User settings loaded.');
+        _debug('Loading DOM elements.');
 
         // try to get all necessary dom elements
         try
@@ -196,7 +199,7 @@
         if (!settings.debug || (!window.console || !console.debug))
             return;
 
-        console.debug('Fluffy: ' + JSON.stringify(message));
+        console.debug('[Fluffy] ' + (typeof message === 'string' ? message : JSON.stringify(message)));
     };
 
     /**
@@ -391,6 +394,8 @@
         if (!settings.showScrollbar)
             return;
 
+        _debug('Creating scrollbars.');
+
         // try to get scrollbar container
         var scrollbar = document.querySelector(settings.scrollbarSelector);
 
@@ -499,6 +504,8 @@
      */
     function updateContentSize ()
     {
+        _debug('Updating content container size.');
+
         // set content width
         my.content.style.width = Fluffy.getContentWidth() + 'px';
 
@@ -547,6 +554,8 @@
      */
     function calculateRatios ()
     {
+        _debug('Calculating ratios.');
+
         // available mousemove area
         mouse.moveArea = {
             width: my.trigger.offsetWidth - (settings.mousePadding * 2),
@@ -597,6 +606,8 @@
             // run important calculations
             calculateRatios();
 
+            _debug('Registering event listeners.');
+
             my.trigger.addEventListener('mousemove', function (e)
             {
                 // start mouse observer if not already started
@@ -613,6 +624,8 @@
             // start mouse observer
             mouse.observer.start = function ()
             {
+                _debug('Starting mouse observer.');
+
                 // add modifier to container that it's moving
                 _addClass(my.container, 'is-moving');
 
@@ -644,7 +657,11 @@
             }
 
             // stop mouse observer
-            mouse.observer.stop = function () { _clearInterval(mouse.observer.process); }
+            mouse.observer.stop = function ()
+            {
+                _debug('Stopping mouse observer.');
+                _clearInterval(mouse.observer.process);
+            }
 
             // mouse observer status
             mouse.observer.status = function () { return mouse.observer.process.run; }
