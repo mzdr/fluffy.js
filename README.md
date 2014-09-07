@@ -75,14 +75,3 @@ The higher the value the more lazier the reaction to the mouse movement will be.
 
 Adds space (in pixel) to the trigger area where no action happens.  
 `mousePadding: 60`
-
-## Support
-
-Fluffy has been tested in those browsers successfully:  
-
-- Google Chrome 37
-- Mozilla Firefox 31
-- Safari 7
-- Windows Internet Explorer 9
-- Android Browser 4.3
-- iOS Safari 7.1
