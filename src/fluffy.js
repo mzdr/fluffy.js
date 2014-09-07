@@ -158,7 +158,10 @@
      */
     Fluffy.getContentWidth = function ()
     {
-        for (var i = 0, contentWidth = 0; i < my.items.length; i++)
+        // right now i don't know why, but somehow contentWidth needs to have
+        // a puffer of 2px, otherwise in some browsers the last item doesn't
+        // fit in and causes a line break
+        for (var i = 0, contentWidth = 2; i < my.items.length; i++)
             contentWidth += my.items[i].offsetWidth;
 
         // 1px buffer
