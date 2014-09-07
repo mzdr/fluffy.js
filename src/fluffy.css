@@ -64,7 +64,7 @@
     opacity: 0;
 }
 
-.fluffy-container.has-scrollbar .fluffy-scrollbar {
+.fluffy-container.has-scrollbar.is-moving .fluffy-scrollbar {
     opacity: 1;
 }
 
@@ -82,16 +82,35 @@
     animation: moveLeft 600ms linear infinite alternate;
 }
 
-.fluffy-scrollbar {
-    background-color: rgba(0, 0, 0, 0.33);
-    box-shadow: inset 0 0 20px 20px rgba(255, 255, 255, 0.33);
-    height: 5px;
-    left: 0;
+.fluffy-container .fluffy-scrollbar {
     opacity: 0;
+
+    -webkit-transition: opacity 600ms, left 200ms;
+    -moz-transition: opacity 600ms, left 200ms;
+    -ms-transition: opacity 600ms, left 200ms;
+    -o-transition: opacity 600ms, left 200ms;
+    transition: opacity 600ms, left 200ms;
+}
+
+.fluffy-scrollbar .is-left,
+.fluffy-scrollbar .is-top {
+    background-color: rgba(0, 0, 0, 0.66);
+    box-shadow: inset 0 0 20px 20px rgba(255, 255, 255, 0.66);
     position: absolute;
+}
+
+.fluffy-scrollbar .is-left {
+    height: 3px;
+    left: 0;
     top: 0;
-    width: 5%;
-    z-index: 1000;
+    width: 40px;
+}
+
+.fluffy-scrollbar .is-top {
+    height: 40px;
+    right: 0;
+    top: 0;
+    width: 3px;
 }
 
 .fluffy-stage {
@@ -126,12 +145,18 @@
     transition: opacity 1s 600ms;
 }
 
+.fluffy-content::after {
+    clear: both;
+    content: "";
+    display: block;
+    height: 0;
+    visibility: hidden;
+}
+
 .fluffy-item {
-    background-position: center;
-    background-size: cover;
-    display: inline-block;
+    display: block;
+    float: left;
     height: 100%;
     margin: 0;
     padding: 0;
-    vertical-align: middle;
 }
