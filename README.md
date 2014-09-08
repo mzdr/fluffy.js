@@ -2,6 +2,8 @@
 
 A simple, light and flexible JavaScript library that empowers you, to create content that anyone can interact with in a real fluffy way.
 
+– [http://mzdr.github.io/fluffy.js/](http://mzdr.github.io/fluffy.js/)
+
 Sebastian Prein  
 Copyright 2014, MIT License
 
