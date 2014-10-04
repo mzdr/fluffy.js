@@ -19,7 +19,7 @@
     var root;
 
     root = (typeof exports === 'object') ? exports : this;
-    root.Fluffy || (root.Fluffy = { });
+    root.Fluffy || (root.Fluffy = {});
 
     // feature test
     var supports = !!document.querySelector && !!root.addEventListener;
@@ -73,10 +73,10 @@
 
         // adds space (in pixel) to the trigger area where no action happens
         mousePadding: 60
-    };
+    }
 
     // dom elements
-    var my = { container: null, scrollbar: {}, stage: null, content: null, items: null };
+    var my = { container: null, scrollbar: {}, stage: null, content: null, items: null }
 
     // user settings
     var settings;
@@ -139,17 +139,21 @@
         // try to get all necessary dom elements
         try
         {
-            my.container = getContainer();
-            my.trigger = getTrigger();
-            my.scrollbar = getScrollbar();
-            my.stage = getStage();
-            my.content = getContent();
-            my.items = getItems();
+            getContainer();
+            getTrigger();
+            getScrollbar();
+            getStage();
+            getContent();
+            getItems();
         }
-        catch (e) { return _debug(e.message); }
+
+        catch (e)
+        {
+            return _debug(e.message);
+        }
 
         registerListeners();
-    };
+    }
 
     /**
      * Returns the width of the scrollable content by summing up all item widths.
@@ -186,7 +190,7 @@
 
             if (my.items[i].offsetHeight < smallest)
                 smallest = my.items[i].offsetHeight;
-        };
+        }
 
         return [ smallest, tallest ];
     }
@@ -203,7 +207,7 @@
             return;
 
         console.debug('[Fluffy] ' + (typeof message === 'string' ? message : JSON.stringify(message)));
-    };
+    }
 
     /**
      * Removes a class from a given DOM element.
@@ -221,7 +225,7 @@
         var className = el.className.split(' ');
         className.splice(className.indexOf(name), 1);
         el.className = className.join(' ');
-    };
+    }
 
     /**
      * Adds a class to a given DOM element.
@@ -237,7 +241,7 @@
             return el.classList.add(name);
 
         el.className += ' ' + name;
-    };
+    }
 
     /**
      * Behaves the same as setInterval except uses requestAnimationFrame()
@@ -264,7 +268,7 @@
             }
 
             handle.value = window.requestAnimationFrame(loop);
-        };
+        }
 
         handle.value = window.requestAnimationFrame(loop);
 
@@ -311,7 +315,7 @@
         }
 
         return items;
-    };
+    }
 
     /**
      * Returns the Fluffy container element.
@@ -326,7 +330,7 @@
             throw Error('Container \'' + settings.containerSelector + '\' is undefined.');
 
         return my.container;
-    };
+    }
 
     /**
      * Returns the Fluffy trigger element.
@@ -342,7 +346,7 @@
             throw Error('Trigger \'' + settings.containerSelector + '\' is undefined.');
 
         return my.trigger;
-    };
+    }
 
     /**
      * Returns the Fluffy stage element.
@@ -357,7 +361,7 @@
             throw Error('Stage \'' + settings.stageSelector + '\' is undefined.');
 
         return my.stage;
-    };
+    }
 
     /**
      * Returns the Fluffy content element.
@@ -372,7 +376,7 @@
             throw Error('Content \'' + settings.contentSelector + '\' is undefined.');
 
         return my.content;
-    };
+    }
 
     /**
      * Returns the Fluffy content items list.
@@ -384,7 +388,7 @@
         var items = (settings.itemSelector !== null) ? document.querySelectorAll(settings.itemSelector) : my.content.childNodes;
 
         return my.items = _cleanItems(items);
-    };
+    }
 
     /**
      * Returns the Fluffy scrollbar element.
@@ -422,7 +426,7 @@
         }
 
         return my.scrollbar;
-    };
+    }
 
     /**
      * Returns the total scrollable height.
@@ -432,7 +436,7 @@
     function getScrollableHeight ()
     {
         return my.content.offsetHeight - my.stage.offsetHeight;
-    };
+    }
 
     /**
      * Returns the total scrollable width.
@@ -442,7 +446,7 @@
     function getScrollableWidth ()
     {
         return my.content.offsetWidth - my.stage.offsetWidth;
-    };
+    }
 
     /**
      * Returns the mouse position within the trigger area.
@@ -481,8 +485,8 @@
         return {
             x: (settings.triggerDirection.indexOf('x') >= 0) ? Math.min(Math.max(0, e.clientX - gap.left), rect.width - gap.right) : 0,
             y: (settings.triggerDirection.indexOf('y') >= 0) ? Math.min(Math.max(0, e.clientY - gap.top), rect.height - gap.bottom) : 0
-        };
-    };
+        }
+    }
 
     /**
      * Returns the fake mouse position which is adjusted to the set padding and
@@ -496,8 +500,8 @@
         return {
             x: (settings.triggerDirection.indexOf('x') >= 0) ? Math.min(Math.max(0, mouse.real.x - settings.mousePadding), mouse.moveArea.width) * ratio.moveAreaToContent.width : 0,
             y: (settings.triggerDirection.indexOf('y') >= 0) ? Math.min(Math.max(0, mouse.real.y - settings.mousePadding), mouse.moveArea.height) * ratio.moveAreaToContent.height : 0
-        };
-    };
+        }
+    }
 
     /**
      * Updates the size of the content element according the the calculated
@@ -516,7 +520,7 @@
         // set stage height aswell
         if (settings.triggerDirection.indexOf('y') >= 0 || settings.smartHeight !== false)
             my.content.style.height = Fluffy.getContentHeight()[(settings.smartHeight === 'smallest') ? 0 : 1] + 'px';
-    };
+    }
 
     /**
      * Updates the position of the scrollbar relative to the current scrolled
@@ -534,7 +538,7 @@
 
         if (settings.triggerDirection.indexOf('y') >= 0)
             my.scrollbar.top.style.top = my.stage.scrollTop / getScrollableHeight() * (1 - my.scrollbar.top.offsetHeight / my.stage.offsetHeight) * 100 + '%';
-    };
+    }
 
     /**
      * Scrolls the stage to the given position according to the trigger axis set.
