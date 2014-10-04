@@ -11,7 +11,7 @@ Contributions are greatly appreciated. Please fork this repository and open a pu
 
 ## Usage
 
-Fluffy is plain JavaScript. There's no need for heavy frameworks like jQuery or similar. It's totally fluid responsive, touch device friendly, super easy to customize and weights about **8KB** only.  
+Fluffy is plain JavaScript. There's no need for heavy frameworks like jQuery or similar. It's totally fluid responsive, touch device friendly, super easy to customize and weights about **9KB** only.  
 
 Just download the latest version from here and move it to your project. In your HTML file, where you want to have your fluffy area, make sure your markup looks like this:
 
@@ -34,6 +34,7 @@ All IDs (`#fluffy-*`) are used to grab the respective DOM elements by the JavaSc
 If everything is set up just include the almighty magic and you're ready to go.
 
 ```HTML
+<link rel="stylesheet" href="path/to/fluffy.min.css">
 <script src="path/to/fluffy.min.js"></script>
 <script>Fluffy.init({ options });</script>
 ```
