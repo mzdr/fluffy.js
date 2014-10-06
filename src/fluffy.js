@@ -467,10 +467,10 @@
 
             // trigger element borders
             border = {
-                left: parseInt(style.borderLeftWidth, 10) || 0,
-                right: parseInt(style.borderRightWidth, 10) || 0,
-                top: parseInt(style.borderTopWidth, 10) || 0,
-                bottom: parseInt(style.borderBottomWidth, 10) || 0
+                left: style.borderLeftWidth | 0,
+                right: style.borderRightWidth | 0,
+                top: style.borderTopWidth | 0,
+                bottom: style.borderBottomWidth | 0
             },
 
             // the border width and offset needs to be subtracted from the mouse position
