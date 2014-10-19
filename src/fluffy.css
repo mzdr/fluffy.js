@@ -115,20 +115,12 @@
 
 .fluffy-stage {
     height: 100%;
-    overflow: hidden;
 
     -webkit-transition: opacity 600ms 600ms;
     -moz-transition: opacity 600ms 600ms;
     -ms-transition: opacity 600ms 600ms;
     -o-transition: opacity 600ms 600ms;
     transition: opacity 600ms 600ms;
-}
-
-.fluffy-container.is-touch .fluffy-stage {
-    overflow-x: scroll;
-    overflow-y: hidden;
-
-    -webkit-overflow-scrolling: touch;
 }
 
 .fluffy-content {
