@@ -117,7 +117,7 @@
         // use default settings and override options if given
         settings = defaults;
 
-        if (options !== undefined && options !== null && typeof options === 'object')
+        if (typeof options === 'object')
         {
             Object.keys(options).forEach(function (key)
             {
@@ -150,6 +150,17 @@
         catch (e)
         {
             return _debug(e.message);
+        }
+
+        // set important styling
+        my.stage.style.overflow = 'hidden';
+
+        // adjust styling to touch devices
+        if (isTouch)
+        {
+            my.stage.style.webkitOverflowScrolling = 'touch';
+            my.stage.style.overflowX = settings.triggerDirection.indexOf('x') >= 0 ? 'scroll' : 'hidden';
+            my.stage.style.overflowY = settings.triggerDirection.indexOf('y') >= 0 ? 'scroll' : 'hidden';
         }
 
         registerListeners();
@@ -584,10 +595,6 @@
      */
     function registerListeners ()
     {
-        // use native scrolling on touch device (see css)
-        if (isTouch)
-            _addClass(my.container, 'is-touch');
-
         window.addEventListener('load', function ()
         {
             // remove loading state
