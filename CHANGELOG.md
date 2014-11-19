@@ -1,3 +1,19 @@
+# 2.0.0
+
+Features:
+- dropping support for IE9
+- added support for multiple instances of Fluffy
+- added automatic initialization of Fluffy (drops options object as well)
+- each instance can be customized via data attributes now
+- simplified necessary markup
+- dropped debugging messages in favor of real warning messages when needed
+- scrolling is now based on CSS3 transform instead of scroll property
+- refactored functions and methods
+
+Bufixes:
+
+- removed contentWidth hack in favor of correct calculations
+
 # 1.1.0 (2014-09-07)
 
 Features:
