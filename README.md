@@ -57,31 +57,13 @@ For example if you don't want to have scrollbars and a separate trigger instead,
 </div>
 ```
 
-
-Below is a list of all available options.
-
-`triggerSelector: null`  
-Defines a separate element which is used to trigger the actual interaction with the Fluffy content. If the target element doesn't exist, the container will be used as fallback/default.  
-
-`showScrollbars: true`  
-Displays the current position within the scrollable content in forms of scrollbars.  
-
-`smartHeight: false`  
-Automatically adjust the height of the content container according to the smallest, largest or the average height of all items found.  
-  
-Allowed values: false, 'smallest', 'average', 'largest'.  
-
-`smartWidth: false`  
-See smartHeight, just for width this time.  
-  
-Allowed values: false, 'smallest', 'average', 'largest'.  
-
-`triggerDirection: 'x'`  
-Define which axis to trigger movement for. Allowed values: x, y, xy.  
-
-`mouseDamp: 20`  
-The higher the value the more lazier the reaction to the mouse movement will be.  
-
-`mousePadding: 60`  
-Adds space (in pixel) to the trigger area where no action happens.  
+| Option | Default | Description |
+|--------|---------|-------------|
+| triggerSelector | null | Defines a separate element which is used to trigger the actual interaction with the Fluffy content. If the target element doesn't exist, the *container* will be used as fallback/default. |
+| showScrollbars | true | Displays the current position within the scrollable content in forms of scrollbars. |
+| smartHeight | false | Automatically adjust the height of the content container according to the smallest, largest or the average height of all items found. Allowed values: *false*, *'smallest'*, *'average'*, *'largest'*. |
+| smartWidth | false | See *smartHeight*, just for *width* this time. |
+| triggerDirection | 'x' | Define which axis to trigger movement for. Allowed values: *'x'*, *'y'*, *'xy'*. |
+| mouseDamp | 20 | The higher the value the more lazier the reaction to the mouse movement will be. |
+| mousePadding | 60 | Adds space (in pixel) to the trigger area where no action happens. |
 
