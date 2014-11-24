@@ -476,20 +476,22 @@
         {
             var widths =
             {
-                smallest: this.items[0].naturalWidth,
+                smallest: null,
                 largest: 0,
                 average: 0,
             };
 
             for (var i = 0; i < this.items.length; i++)
             {
-                widths.average += this.items[i].naturalWidth;
+                var width = 'naturalWidth' in this.items[i] ? this.items[i].naturalWidth : this.items[i].getBoundingClientRect().width;
 
-                if (this.items[i].naturalWidth > widths.largest)
-                    widths.largest = this.items[i].naturalWidth;
+                widths.average += width;
 
-                if (this.items[i].naturalWidth < widths.smallest)
-                    widths.smallest = this.items[i].naturalWidth;
+                if (width > widths.largest)
+                    widths.largest = width;
+
+                if (widths.smallest === null || width < widths.smallest)
+                    widths.smallest = width;
             }
 
             // get average width
@@ -509,20 +511,22 @@
         {
             var heights =
             {
-                smallest: this.items[0].naturalHeight,
+                smallest: null,
                 largest: 0,
                 average: 0,
             };
 
             for (var i = 0; i < this.items.length; i++)
             {
-                heights.average += this.items[i].naturalHeight;
+                var height = 'naturalHeight' in this.items[i] ? this.items[i].naturalHeight : this.items[i].getBoundingClientRect().height;
 
-                if (this.items[i].naturalHeight > heights.largest)
-                    heights.largest = this.items[i].naturalHeight;
+                heights.average += height;
 
-                if (this.items[i].naturalHeight < heights.smallest)
-                    heights.smallest = this.items[i].naturalHeight;
+                if (height > heights.largest)
+                    heights.largest = height;
+
+                if (heights.smallest === null || height < heights.smallest)
+                    heights.smallest = height;
             }
 
             // get average height
