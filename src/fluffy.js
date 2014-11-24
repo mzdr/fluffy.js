@@ -823,16 +823,16 @@
                 }
 
                 // integrity checks for several options
-                if (settings.mousePadding !== undefined && settings.mousePadding < 0)
+                if ('mousePadding' in settings && settings.mousePadding < 0)
                     settings.mousePadding = defaults.mousePadding;
 
-                if (settings.mouseDamp !== undefined && settings.mouseDamp <= 0)
+                if ('mouseDamp' in settings && settings.mouseDamp <= 0)
                     settings.mouseDamp = defaults.mouseDamp;
             }
 
             // fill up missing settings with its default values
             for (var key in defaults)
-                if (settings[key] === undefined)
+                if (!(key in settings))
                     settings[key] = defaults[key];
 
             // fill properties
@@ -989,7 +989,7 @@
                 var tmp = document.createElement('div');
 
                 for (var i = 0; i < prefixes.length; i++)
-                    if (typeof tmp.style[prefixes[i]] !== 'undefined')
+                    if (prefixes[i] in tmp.style)
                         return prefixes[i];
 
                 throw Error('Browser doesn\'t support CSS3 transforms.');
