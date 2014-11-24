@@ -1000,6 +1000,10 @@
 
             })(["transform", "msTransform", "MozTransform", "WebkitTransform", "OTransform"]);
 
+            // add global touch state modifier
+            if (isTouch)
+                document.documentElement.classList.add('is-touch');
+
             // get all defined containers
             var containers = document.querySelectorAll('[data-fluffy-container]');
 
