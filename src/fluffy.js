@@ -31,7 +31,7 @@
      * @see http://www.stucox.com/blog/you-cant-detect-a-touchscreen/
      * @type {Boolean}
      */
-    var isTouch = ('ontouchstart' in root);
+    var isTouch = 'ontouchstart' in root;
 
     /**
      * This is the default CSS property used for shifting the Fluffy content.
@@ -48,6 +48,13 @@
      * @type {Array}
      */
     var smartSize = [ 'smallest', 'average', 'largest' ];
+
+    /**
+     * Defines the maximum decimal places when rounding in calculations.
+     *
+     * @type {Number}
+     */
+    var maxDecimalPlaces = 3;
 
     /**
      * Those are the default settings used by the FluffyObject class.
@@ -685,11 +692,11 @@
             this.defineRatios();
 
             if (this.settings.triggerDirection.indexOf('x') >= 0)
-                this.content.style.width = this.ratios.containerToContent.width * 100 + '%';
+                this.content.style.width = (this.ratios.containerToContent.width * 100 + 0.001).toFixed(maxDecimalPlaces) + '%';
 
 
             if (this.settings.triggerDirection.indexOf('y') >= 0)
-                this.content.style.height = this.ratios.containerToContent.height * 100 + '%';
+                this.content.style.height = (this.ratios.containerToContent.height * 100 + 0.001).toFixed(maxDecimalPlaces) + '%';
         };
 
         /**
@@ -700,10 +707,16 @@
          */
         this.updateContentPosition = function ()
         {
-            var x = this.settings.triggerDirection.indexOf('x') >= 0 ? -this.mouse.last.x / this.sizes.scrollable.width * this.ratios.contentToScrollableArea.width * 100 : 0;
-            var y = this.settings.triggerDirection.indexOf('y') >= 0 ? -this.mouse.last.y / this.sizes.scrollable.height * this.ratios.contentToScrollableArea.height * 100 : 0;
+            // by default
+            var x = 0, y = 0;
 
-            this.content.style[shiftProperty] = 'translate(' + x + '%, ' + y + '%)';
+            if (this.settings.triggerDirection.indexOf('x') >= 0)
+                x = (this.mouse.last.x / this.sizes.scrollable.width * this.ratios.contentToScrollableArea.width * 100).toFixed(maxDecimalPlaces);
+
+            if (this.settings.triggerDirection.indexOf('y') >= 0)
+                y = (this.mouse.last.y / this.sizes.scrollable.height * this.ratios.contentToScrollableArea.height * 100).toFixed(maxDecimalPlaces);
+
+            this.content.style[shiftProperty] = 'translate(-' + x + '%, -' + y + '%)';
         };
 
         /**
@@ -718,10 +731,10 @@
                 return;
 
             if (this.settings.triggerDirection.indexOf('x') >= 0)
-                this.scrollbars.horizontal.style.left = this.mouse.last.x / this.sizes.scrollable.width * (1 - this.sizes.scrollbars.horizontal.width / this.sizes.container.width) * 100 + '%';
+                this.scrollbars.horizontal.style.left = (this.mouse.last.x / this.sizes.scrollable.width * this.ratios.containerToScrollbarArea.width * 100).toFixed(maxDecimalPlaces) + '%';
 
             if (this.settings.triggerDirection.indexOf('y') >= 0)
-                this.scrollbars.vertical.style.top = this.mouse.last.y / this.sizes.scrollable.height * (1 - this.sizes.scrollbars.vertical.height / this.sizes.container.height) * 100 + '%';
+                this.scrollbars.vertical.style.top = (this.mouse.last.y / this.sizes.scrollable.height * this.ratios.containerToScrollbarArea.height * 100).toFixed(maxDecimalPlaces) + '%';
         };
 
         /**
@@ -732,21 +745,31 @@
         this.defineRatios = function ()
         {
             // moving area to scrollable area
-            this.ratios.moveAreaToContent = {
+            this.ratios.moveAreaToContent =
+            {
                 width: this.sizes.scrollable.width / this.sizes.moveArea.width,
                 height: this.sizes.scrollable.height / this.sizes.moveArea.height
             };
 
             // content to scrollable area
-            this.ratios.contentToScrollableArea = {
+            this.ratios.contentToScrollableArea =
+            {
                 width: this.sizes.scrollable.width / this.sizes.content.width,
                 height: this.sizes.scrollable.height / this.sizes.content.height
             };
 
             // container to content
-            this.ratios.containerToContent = {
+            this.ratios.containerToContent =
+            {
                 width: this.sizes.content.width / this.sizes.container.width,
                 height: this.sizes.content.height / this.sizes.container.height
+            };
+
+            // scrollbar to container
+            this.ratios.containerToScrollbarArea =
+            {
+                width: this.sizes.scrollbars.horizontal ? (this.sizes.container.width - this.sizes.scrollbars.horizontal.width) / this.sizes.container.width : 0,
+                height: this.sizes.scrollbars.vertical ? (this.sizes.container.height - this.sizes.scrollbars.vertical.height) / this.sizes.container.height : 0
             };
         };
 
