@@ -1,6 +1,6 @@
-# Fluffy.js 1.1.0
+# Fluffy.js 2.0.0
 
-A simple, light and flexible JavaScript library that empowers you, to create content that anyone can interact with in a real fluffy way.
+A simple, light and flexible JavaScript library that makes your content – no matter how big it is – fit in any screen! 
 
 – [http://mzdr.github.io/fluffy.js/](http://mzdr.github.io/fluffy.js/)
 
@@ -11,69 +11,59 @@ Contributions are greatly appreciated. Please fork this repository and open a pu
 
 ## Usage
 
-Fluffy is plain JavaScript. There's no need for heavy frameworks like jQuery or similar. It's totally fluid responsive, touch device friendly, super easy to customize and weights about **8KB** only.  
+To get started just download the latest stable version from here and move all the files from the zip archive to the respective folder in your project. When you've done that, go on!
 
-Just download the latest version from here and move it to your project. In your HTML file, where you want to have your fluffy area, make sure your markup looks like this:
+Now let me explain you how Fluffy works. Everything that is related to it gets into the Fluffy container.
 
-```HTML
-<div id="fluffy-container" class="fluffy-container is-loading">
-    <div id="fluffy-scrollbar" class="fluffy-scrollbar"></div>
-    <div id="fluffy-stage" class="fluffy-stage">
-        <ul id="fluffy-content" class="fluffy-content">
-            <li class="fluffy-item">
-                <!-- your content -->
-            </li>
-            …
-        </ul>
+```html
+<div data-fluffy-container>
+    …
+</div>
+```
+
+This helps Fluffy to correctly inject elements and classes for several states of execution. You can use an existing element or create a new one, all it needs is the `data-fluffy-container` attribute.
+
+Your actual content is an element with the `data-fluffy-content` attribute.
+
+```html
+<div data-fluffy-container>
+    <div data-fluffy-content>
+        <!-- your content -->
     </div>
 </div>
 ```
 
-All IDs (`#fluffy-*`) are used to grab the respective DOM elements by the JavaScript logic. You can use different IDs, just remember to tell Fluffy which selectors it should look for. Feel free to adjust any class used by Fluffy to your liking, but be careful as you might break something.  
+Well, that's almost it. All that's left is the almighty magic and a little bit of styling, which is by the way just a real basic styling to have a minimal visual feedback at least. Feel free to do whatever you like with it!
 
-If everything is set up just include the almighty magic and you're ready to go.
-
-```HTML
+```html
+<link rel="stylesheet" href="path/to/fluffy.min.css">
 <script src="path/to/fluffy.min.js"></script>
-<script>Fluffy.init({ options });</script>
 ```
+
+**That's it!** Open your browser and see for yourself!
 
 ## Options
 
-This list shows all the available options and their default values.  
+Since each Fluffy container is an instance on its own you're able to customize each one independently with the `data-fluffy-options='…'` attribute. This takes a **JSON** string with all of the options you want to change.
 
-The overall Fluffy container holding everything together.  
-`containerSelector: '#fluffy-container'`
+For example if you don't want to have scrollbars and a separate trigger instead, it would look like this:
 
-The selector for the actual content.  
-`contentSelector: '#fluffy-content'`
+```html
+<div data-fluffy-container 
+     data-fluffy-options='{"showScrollbars": false, "triggerSelector": "#my-trigger"}'>
+    <div data-fluffy-content>
+        <!-- your content -->
+    </div>
+</div>
+```
 
-Enable debugging in case the output isn't as expected. See your browsers console for more information.  
-`debug: false`
+| Option | Default | Description |
+|--------|---------|-------------|
+| triggerSelector | null | Defines a separate element which is used to trigger the actual interaction with the Fluffy content. If the target element doesn't exist, the *container* will be used as fallback/default.<br><br>Allowed values: '*[any valid CSS selector]*'<br>Examples: '#my-trigger', '#id > li:nth-child(8) a + img' |
+| showScrollbars | true | Displays the current position within the scrollable content in forms of scrollbars.<br><br>Allowed values: *true*, *false* |
+| smartHeight | false | Automatically adjust the height of the content container according to the smallest, largest or the average height of all items found.<br><br>Allowed values: *false*, *'smallest'*, *'average'*, *'largest'*. |
+| smartWidth | false | See *smartHeight*, just for *width* this time. |
+| triggerDirection | 'x' | Define which axis to trigger movement for.<br><br>Allowed values: *'x'*, *'y'*, *'xy'*. |
+| mouseDamp | 20 | The higher the value the more lazier the reaction to the mouse movement will be.<br><br>Allowed values: *[any positive number]* |
+| mousePadding | 60 | Adds space (in pixel) to the trigger area where no action happens.<br><br>Allowed values: *[any positive number]* |
 
-Selector to pick items, if none given all children in the content container will be picked.  
-`itemSelector: null`
-
-Selector for the scrollbar.  
-`scrollbarSelector: '#fluffy-scrollbar'`
-
-Displays the current position within the scrollable content in form of a scrollbar.  
-`showScrollbar: true`
-
-Automatically adjust the height of the content container either relative to the smallest or tallest element found. Allowed values: false, 'tallest', 'smallest'.  
-`smartHeight: false`
-
-The stage holding the scrollable content.  
-`stageSelector: '#fluffy-stage'`
-
-If no trigger selector is given, the Fluffy container is also the trigger area.  
-`triggerSelector: null`
-
-Define which axis to trigger movement for. Allowed values: x, y, xy.  
-`triggerDirection: 'x'`
-
-The higher the value the more lazier the reaction to the mouse movement will be.  
-`mouseDamp: 20`
-
-Adds space (in pixel) to the trigger area where no action happens.  
-`mousePadding: 60`
