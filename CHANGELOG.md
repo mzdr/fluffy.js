@@ -1,6 +1,7 @@
-# 2.0.0
+# 2.0.0 (2015-02-08)
 
 Features:
+
 - dropping support for IE9
 - added support for multiple instances of Fluffy
 - added automatic initialization of Fluffy (drops options object as well)
@@ -8,11 +9,13 @@ Features:
 - simplified necessary markup
 - dropped debugging messages in favor of real warning messages when needed
 - scrolling is now based on CSS3 transform instead of scroll property
-- refactored functions and methods
+- refactored the whole library to an object orientated base
+- smartWidth/smartHeight are able to return the average size now
 
 Bufixes:
 
 - removed contentWidth hack in favor of correct calculations
+- fixed smartWidth/smartHeight returning incorrect values
 
 # 1.1.0 (2014-09-07)
 
