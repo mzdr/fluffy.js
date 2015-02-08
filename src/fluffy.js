@@ -7,8 +7,7 @@
 {
     'use strict';
 
-    var root = (typeof exports === 'object') ? exports : this;
-    root.Fluffy = {};
+    window.Fluffy = {};
 
     /**
      * Fluffy version.
@@ -22,7 +21,7 @@
      *
      * @type {Boolean}
      */
-    var featureSupport = !!document.querySelector && !!root.addEventListener && !!root.requestAnimationFrame;
+    var featureSupport = !!document.querySelector && !!window.addEventListener && !!window.requestAnimationFrame;
 
     /**
      * Simple detection if we're on a touch device or not. I know, not really
@@ -31,7 +30,7 @@
      * @see http://www.stucox.com/blog/you-cant-detect-a-touchscreen/
      * @type {Boolean}
      */
-    var isTouch = 'ontouchstart' in root;
+    var isTouch = 'ontouchstart' in window;
 
     /**
      * This is the default CSS property used for shifting the Fluffy content.
@@ -125,6 +124,17 @@
     };
 
     /**
+     * Size of the screen.
+     *
+     * @type {Object}
+     */
+    var screenSize =
+    {
+        x: window.innerWidth,
+        y: window.innerHeight
+    };
+
+    /**
      * Fluffy stores all instantiated objects in this variable.
      *
      * @type {Array}
@@ -147,7 +157,7 @@
         // pseudo type cast messages to array
         messages = messages === null ? [] : (Array.isArray(messages) ? messages : [ messages ]);
 
-        if (!root.console || !console[type])
+        if (!window.console || !console[type])
             return true;
 
         console.group('Fluffy %c(%s)', 'font-style: italic; color: rgba(0, 0, 0, 0.25);', Fluffy.version);
@@ -203,7 +213,7 @@
         // need a debouncer
         var debounce;
 
-        root.addEventListener('resize', function ()
+        window.addEventListener('resize', function (e)
         {
             // wait for it
             if (debounce)
@@ -213,8 +223,8 @@
             {
                 fluffyObjects.forEach(function (fluffyObject)
                 {
-                    // update content sizes
                     fluffyObject.updateContentSize();
+                    fluffyObject.updateContentPosition();
                 });
 
             }, 100);
@@ -578,9 +588,9 @@
              * normalizing the offsetX, offsetY. thanks jack moore!
              * @see http://www.jacklmoore.com/notes/mouse-position/
              */
-            e = e || root.event;
+            e = e || window.event;
 
-            var style = this.trigger.currentStyle || root.getComputedStyle(this.trigger, null),
+            var style = this.trigger.currentStyle || window.getComputedStyle(this.trigger, null),
                 rect = this.trigger.getBoundingClientRect(),
 
                 // trigger element borders
@@ -697,6 +707,24 @@
 
             if (this.settings.triggerDirection.indexOf('y') >= 0)
                 this.content.style.height = (this.ratios.containerToContent.height * 100 + 0.001).toFixed(maxDecimalPlaces) + '%';
+
+            // check if mouse position needs to be adjusted
+            if (screenSize.x !== window.innerWidth || screenSize.y !== window.innerHeight)
+            {
+                this.mouse.real =
+                {
+                    x: this.mouse.real.x * (window.innerWidth / screenSize.x),
+                    y: this.mouse.real.y * (window.innerHeight / screenSize.y),
+                };
+
+                screenSize =
+                {
+                    x: window.innerWidth,
+                    y: window.innerHeight
+                };
+
+                this.mouse.fake = this.getFakeMousePosition();
+            }
         };
 
         /**
@@ -781,7 +809,7 @@
          */
         this.registerEventListeners = function ()
         {
-            root.addEventListener('load', function ()
+            window.addEventListener('load', function ()
             {
                 // fluffy is ready
                 if (this.container)
@@ -907,7 +935,7 @@
 
             function loop ()
             {
-                handle.value = root.requestAnimationFrame(loop);
+                handle.value = window.requestAnimationFrame(loop);
 
                 var current = Date.now(),
                     delta = current - start;
@@ -919,7 +947,7 @@
                 }
             }
 
-            handle.value = root.requestAnimationFrame(loop);
+            handle.value = window.requestAnimationFrame(loop);
 
             return handle;
         }
@@ -933,7 +961,7 @@
          */
         function _clearInterval (handle)
         {
-            root.cancelAnimationFrame(handle.value);
+            window.cancelAnimationFrame(handle.value);
         }
 
         /**
@@ -954,7 +982,7 @@
                 };
 
                 // stop observing as no movement is going on
-                if (this.status() && Math.abs(add.x) < 0.001 && Math.abs(add.y) < 0.001)
+                if (Math.abs(add.x) < 0.001 && Math.abs(add.y) < 0.001)
                 {
                     // stop observing
                     this.stop();
@@ -971,8 +999,7 @@
                 fluffyObject.updateContentPosition();
 
                 // update scrollbar positions
-                if (fluffyObject.settings.showScrollbars)
-                    fluffyObject.updateScrollbarPosition();
+                fluffyObject.updateScrollbarPosition();
 
             }.bind(this), 10);
         };
