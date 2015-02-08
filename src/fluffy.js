@@ -1,697 +1,1087 @@
-/**
- * An even better animation frame.
- *
- * @copyright Oleg Slobodskoi 2013
- * @website https://github.com/kof/animationFrame
- * @license MIT
- */
-(function(window){"use strict";var nativeRequestAnimationFrame,nativeCancelAnimationFrame;(function(){var i,vendors=["webkit","moz","ms","o"],top;try{window.top.name;top=window.top}catch(e){top=window}nativeRequestAnimationFrame=top.requestAnimationFrame;nativeCancelAnimationFrame=top.cancelAnimationFrame||top.cancelRequestAnimationFrame;for(i=0;i<vendors.length&&!nativeRequestAnimationFrame;i++){nativeRequestAnimationFrame=top[vendors[i]+"RequestAnimationFrame"];nativeCancelAnimationFrame=top[vendors[i]+"CancelAnimationFrame"]||top[vendors[i]+"CancelRequestAnimationFrame"]}nativeRequestAnimationFrame&&nativeRequestAnimationFrame(function(){AnimationFrame.hasNative=true})})();function AnimationFrame(options){if(!(this instanceof AnimationFrame))return new AnimationFrame(options);options||(options={});if(typeof options=="number")options={frameRate:options};options.useNative!=null||(options.useNative=true);this.options=options;this.frameRate=options.frameRate||AnimationFrame.FRAME_RATE;this._frameLength=1e3/this.frameRate;this._isCustomFrameRate=this.frameRate!==AnimationFrame.FRAME_RATE;this._timeoutId=null;this._callbacks={};this._lastTickTime=0;this._tickCounter=0}AnimationFrame.FRAME_RATE=60;AnimationFrame.shim=function(options){var animationFrame=new AnimationFrame(options);window.requestAnimationFrame=function(callback){return animationFrame.request(callback)};window.cancelAnimationFrame=function(id){return animationFrame.cancel(id)};return animationFrame};AnimationFrame.now=Date.now||function(){return(new Date).getTime()};AnimationFrame.navigationStart=AnimationFrame.now();AnimationFrame.perfNow=function(){if(window.performance&&window.performance.now)return window.performance.now();return AnimationFrame.now()-AnimationFrame.navigationStart};AnimationFrame.hasNative=false;AnimationFrame.prototype.request=function(callback){var self=this,delay;++this._tickCounter;if(AnimationFrame.hasNative&&self.options.useNative&&!this._isCustomFrameRate){return nativeRequestAnimationFrame(callback)}if(!callback)throw new TypeError("Not enough arguments");if(this._timeoutId==null){delay=this._frameLength+this._lastTickTime-AnimationFrame.now();if(delay<0)delay=0;this._timeoutId=window.setTimeout(function(){var id;self._lastTickTime=AnimationFrame.now();self._timeoutId=null;++self._tickCounter;for(id in self._callbacks){if(self._callbacks[id]){if(AnimationFrame.hasNative&&self.options.useNative){nativeRequestAnimationFrame(self._callbacks[id])}else{self._callbacks[id](AnimationFrame.perfNow())}delete self._callbacks[id]}}},delay)}this._callbacks[this._tickCounter]=callback;return this._tickCounter};AnimationFrame.prototype.cancel=function(id){if(AnimationFrame.hasNative&&this.options.useNative)nativeCancelAnimationFrame(id);delete this._callbacks[id]};if(typeof exports=="object"&&typeof module=="object"){module.exports=AnimationFrame}else if(typeof define=="function"&&define.amd){define(function(){return AnimationFrame})}else{window.AnimationFrame=AnimationFrame}})(window);
-
-/*! Fluffy.js 1.1.0
+/*! Fluffy.js 2.0.0
  *
  * Sebastian Prein
  * Copyright 2014, MIT License
  */
-(function()
+(function ()
 {
     'use strict';
 
-    var root;
+    window.Fluffy = {};
 
-    root = (typeof exports === 'object') ? exports : this;
-    root.Fluffy || (root.Fluffy = { });
+    /**
+     * Fluffy version.
+     *
+     * @type {String}
+     */
+    Fluffy.version = '2.0.0';
 
-    // feature test
-    var supports = !!document.querySelector && !!root.addEventListener;
+    /**
+     * Simple detection of several features needed for Fluffy to run properly.
+     *
+     * @type {Boolean}
+     */
+    var featureSupport = !!document.querySelector && !!window.addEventListener && !!window.requestAnimationFrame;
 
-    // touch device?
-    // @see: http://www.stucox.com/blog/you-cant-detect-a-touchscreen/
-    var isTouch = ('ontouchstart' in window);
+    /**
+     * Simple detection if we're on a touch device or not. I know, not really
+     * reliable.
+     *
+     * @see http://www.stucox.com/blog/you-cant-detect-a-touchscreen/
+     * @type {Boolean}
+     */
+    var isTouch = 'ontouchstart' in window;
 
-    // default settings
+    /**
+     * This is the default CSS property used for shifting the Fluffy content.
+     * During the automatic initialization there is a routine which checks if
+     * it needs to be prefixed.
+     *
+     * @type {String}
+     */
+    var shiftProperty = 'transform';
+
+    /**
+     * All available smart size attributes.
+     *
+     * @type {Array}
+     */
+    var smartSize = [ 'smallest', 'average', 'largest' ];
+
+    /**
+     * Defines the maximum decimal places when rounding in calculations.
+     *
+     * @type {Number}
+     */
+    var maxDecimalPlaces = 3;
+
+    /**
+     * Those are the default settings used by the FluffyObject class.
+     *
+     * @type {Object}
+     */
     var defaults =
     {
-        // the overall container holding everything together
-        containerSelector: '#fluffy-container',
-
-        // the selector for the actual content
-        contentSelector: '#fluffy-content',
-
-        // enable debugging output
-        debug: false,
-
-        // selector to pick items, if none given all children in the content
-        // container will be picked
-        itemSelector: null,
-
-        // selector for the scrollbar
-        scrollbarSelector: '#fluffy-scrollbar',
-
-        // displays the current position within the scrollable content in form
-        // of a scrollbar
-        showScrollbar: true,
-
-        // automatically adjust the height of the content container either
-        // relative to the smallest or tallest element found
-        // allowed values: false, tallest, smallest
-        smartHeight: false,
-
-        // the stage holding the scrollable content
-        stageSelector: '#fluffy-stage',
-
-        // if no trigger selector is given, the Fluffy container is also
-        // the trigger area
+        /**
+         * If no trigger selector is given, the Fluffy container is also
+         * the trigger area.
+         *
+         * @type {String}
+         */
         triggerSelector: null,
 
-        // define which axis to trigger movement for
-        // allowed values: x, y, xy
+        /**
+         * Displays the current position within the scrollable content in
+         * forms scrollbars for each dimension.
+         *
+         * @type {Boolean}
+         */
+        showScrollbars: true,
+
+        /**
+         * Automatically adjust the height of the content container according
+         * to the smallest, largest or the average height of all items found.
+         *
+         * Allowed values: false, 'smallest', 'average', 'largest'.
+         *
+         * @type {Boolean}
+         */
+        smartHeight: false,
+
+        /**
+         * Automatically adjust the width of the content container according
+         * to the smallest, largest or the average width of all items found.
+         *
+         * Allowed values: false, 'smallest', 'average', 'largest'.
+         *
+         * @type {Boolean}
+         */
+        smartWidth: false,
+
+        /**
+         * Define which dimension to trigger movement for.
+         *
+         * Allowed values: 'x', 'y', 'xy'.
+         *
+         * @type {String}
+         */
         triggerDirection: 'x',
 
-        // the higher the value the more lazier the reaction to the
-        // mouse movement will be
+        /**
+         * The higher the value the more lazier the reaction to the mouse
+         * movement will be.
+         *
+         * @type {Number}
+         */
         mouseDamp: 20,
 
-        // adds space (in pixel) to the trigger area where no action happens
+        /**
+         * Adds space (in pixel) to the trigger area where no action happens.
+         *
+         * @type {Number}
+         */
         mousePadding: 60
     };
 
-    // dom elements
-    var my = { container: null, scrollbar: {}, stage: null, content: null, items: null };
-
-    // user settings
-    var settings;
-
-    // mouse data, initial values
-    var mouse =
+    /**
+     * Size of the screen.
+     *
+     * @type {Object}
+     */
+    var screenSize =
     {
-        real: { x: 0, y: 0 },
-        fake: { x: 0, y: 0 },
-        last: { x: 0, y: 0 },
-        observer:
+        x: window.innerWidth,
+        y: window.innerHeight
+    };
+
+    /**
+     * Fluffy stores all instantiated objects in this variable.
+     *
+     * @type {Array}
+     */
+    var fluffyObjects = [];
+
+    /**
+     * Just a simple console helper.
+     *
+     * @private
+     * @param {Array|String} messages The message or array of messages.
+     * @param {String} type Type of message. Could be 'warn', 'error', 'log' or 'debug' for example.
+     * @return {Boolean}
+     */
+    function _ (messages, type)
+    {
+        // default console message is of type debug
+        type = typeof type !== 'undefined' ? type : 'debug';
+
+        // pseudo type cast messages to array
+        messages = messages === null ? [] : (Array.isArray(messages) ? messages : [ messages ]);
+
+        if (!window.console || !console[type])
+            return true;
+
+        console.group('Fluffy %c(%s)', 'font-style: italic; color: rgba(0, 0, 0, 0.25);', Fluffy.version);
+
+        messages.forEach(function (line)
         {
-            start: null,
-            stop: null,
-            status: null,
-            process: { run: false }
-        }
-    }
-
-    // several ratios
-    var ratio = {}
-
-
-    /**
-     * Initialize Fluffy.
-     *
-     * @public
-     * @param {object} options User set options to override default.
-     */
-    Fluffy.init = function (options)
-    {
-        // set version
-        Fluffy.version = '1.1.0';
-
-        // active requestAnimationFrame shim
-        window.AnimationFrame.shim();
-
-        // use default settings and override options if given
-        settings = defaults;
-
-        if (options !== undefined && options !== null && typeof options === 'object')
-        {
-            Object.keys(options).forEach(function (key)
-            {
-                if (settings[key] !== undefined)
-                    settings[key] = options[key];
-            });
-        }
-
-        // feature test
-        if (!supports)
-            return _debug('Browser has no support for \'querySelector\' or \'addEventListener\'.');
-
-        // just a precaution
-        settings.triggerDirection = settings.triggerDirection.toLowerCase();
-
-        _debug('User settings loaded.');
-        _debug('Loading DOM elements.');
-
-        // try to get all necessary dom elements
-        try
-        {
-            my.container = getContainer();
-            my.trigger = getTrigger();
-            my.scrollbar = getScrollbar();
-            my.stage = getStage();
-            my.content = getContent();
-            my.items = getItems();
-        }
-        catch (e) { return _debug(e.message); }
-
-        registerListeners();
-    };
-
-    /**
-     * Returns the width of the scrollable content by summing up all item widths.
-     *
-     * @public
-     */
-    Fluffy.getContentWidth = function ()
-    {
-        // right now i don't know why, but somehow contentWidth needs to have
-        // a puffer of 2px, otherwise in some browsers the last item doesn't
-        // fit in and causes a line break
-        for (var i = 0, contentWidth = 2; i < my.items.length; i++)
-            contentWidth += my.items[i].offsetWidth;
-
-        // 1px buffer
-        return contentWidth;
-    }
-
-    /**
-     * Returns the smallest or tallest height of the scrollable content by
-     * checking each item for it's height.
-     *
-     * @public
-     */
-    Fluffy.getContentHeight = function ()
-    {
-        var smallest = my.items[0].offsetHeight;
-        var tallest = 0;
-
-        for (var i = 0; i < my.items.length; i++)
-        {
-            if (my.items[i].offsetHeight > tallest)
-                tallest = my.items[i].offsetHeight;
-
-            if (my.items[i].offsetHeight < smallest)
-                smallest = my.items[i].offsetHeight;
-        };
-
-        return [ smallest, tallest ];
-    }
-
-    /**
-     * Debugging helper. Prints additional information if debugging is enabled.
-     *
-     * @private
-     * @param {string} message Message to be printed.
-     */
-    function _debug (message)
-    {
-        if (!settings.debug || (!window.console || !console.debug))
-            return;
-
-        console.debug('[Fluffy] ' + (typeof message === 'string' ? message : JSON.stringify(message)));
-    };
-
-    /**
-     * Removes a class from a given DOM element.
-     *
-     * @private
-     * @param {object} el DOM Element.
-     * @param {string} name Name of the class.
-     */
-    function _removeClass (el, name)
-    {
-        // use DOMTokenList
-        if (typeof el.classList === 'object')
-            return el.classList.remove(name);
-
-        var className = el.className.split(' ');
-        className.splice(className.indexOf(name), 1);
-        el.className = className.join(' ');
-    };
-
-    /**
-     * Adds a class to a given DOM element.
-     *
-     * @private
-     * @param {object} anchor DOM element.
-     * @param {string} name Name of the class.
-     */
-    function _addClass (el, name)
-    {
-        // use DOMTokenList
-        if (typeof el.classList === 'object')
-            return el.classList.add(name);
-
-        el.className += ' ' + name;
-    };
-
-    /**
-     * Behaves the same as setInterval except uses requestAnimationFrame()
-     * where possible for better performance.
-     *
-     * @private
-     * @param {function} fn The callback function.
-     * @param {int} delay The delay in milliseconds.
-     */
-    function _requestInterval (fn, delay)
-    {
-        var start = AnimationFrame.now(),
-            handle = { run: true };
-
-        function loop()
-        {
-            var current = AnimationFrame.now(),
-                delta = current - start;
-
-            if (delta >= delay && handle.run)
-            {
-                fn.call();
-                start = AnimationFrame.now();
-            }
-
-            handle.value = window.requestAnimationFrame(loop);
-        };
-
-        handle.value = window.requestAnimationFrame(loop);
-
-        return handle;
-    }
-
-    /**
-     * Behaves the same as clearInterval except uses
-     * cancelRequestAnimationFrame() where possible for better performance.
-     *
-     * @private
-     * @param {int|object} fn The callback function.
-     */
-    function _clearInterval (handle)
-    {
-        window.cancelAnimationFrame(handle.value);
-        handle.run = false;
-    }
-
-    /**
-     * Removes text nodes and unneeded DOM elements from the item list.
-     *
-     * @private
-     * @param {object} items Fluffy content items.
-     */
-    function _cleanItems (items)
-    {
-        for (var i = 0; i < items.length; i++)
-        {
-            var current = items[i],
-                next = current.nextSibling,
-                prev = current.previousSibling,
-                parent = current.parentNode;
-
-            // remove text nodes
-            if (current !== null && current.nodeType === 3)
-                parent.removeChild(current);
-
-            if (prev !== null && prev.nodeType === 3)
-                parent.removeChild(prev);
-
-            if (next !== null && next.nodeType === 3)
-                parent.removeChild(next);
-        }
-
-        return items;
-    };
-
-    /**
-     * Returns the Fluffy container element.
-     *
-     * @private
-     */
-    function getContainer ()
-    {
-        my.container = document.querySelector(settings.containerSelector);
-
-        if (my.container === null)
-            throw Error('Container \'' + settings.containerSelector + '\' is undefined.');
-
-        return my.container;
-    };
-
-    /**
-     * Returns the Fluffy trigger element.
-     *
-     * @private
-     */
-    function getTrigger ()
-    {
-        // use trigger selector if given
-        my.trigger = (settings.triggerSelector === null) ? getContainer() : document.querySelector(settings.triggerSelector);
-
-        if (my.trigger === null)
-            throw Error('Trigger \'' + settings.containerSelector + '\' is undefined.');
-
-        return my.trigger;
-    };
-
-    /**
-     * Returns the Fluffy stage element.
-     *
-     * @private
-     */
-    function getStage ()
-    {
-        my.stage = document.querySelector(settings.stageSelector);
-
-        if (my.stage === null)
-            throw Error('Stage \'' + settings.stageSelector + '\' is undefined.');
-
-        return my.stage;
-    };
-
-    /**
-     * Returns the Fluffy content element.
-     *
-     * @private
-     */
-    function getContent ()
-    {
-        my.content = document.querySelector(settings.contentSelector);
-
-        if (my.content === null)
-            throw Error('Content \'' + settings.contentSelector + '\' is undefined.');
-
-        return my.content;
-    };
-
-    /**
-     * Returns the Fluffy content items list.
-     *
-     * @private
-     */
-    function getItems ()
-    {
-        var items = (settings.itemSelector !== null) ? document.querySelectorAll(settings.itemSelector) : my.content.childNodes;
-
-        return my.items = _cleanItems(items);
-    };
-
-    /**
-     * Returns the Fluffy scrollbar element.
-     *
-     * @private
-     */
-    function getScrollbar ()
-    {
-        // scrollbar disabled
-        if (!settings.showScrollbar)
-            return;
-
-        _debug('Creating scrollbars.');
-
-        // try to get scrollbar container
-        var scrollbar = document.querySelector(settings.scrollbarSelector);
-
-        if (scrollbar === null)
-            throw Error('Scrollbar \'' + settings.scrollbarSelector + '\' is undefined.');
-
-        // add horizontal scrollbar
-        if (settings.triggerDirection.indexOf('x') >= 0)
-        {
-            my.scrollbar.left = document.createElement('span');
-            scrollbar.appendChild(my.scrollbar.left);
-            _addClass(my.scrollbar.left, 'is-left');
-        }
-
-        // add vertical scrollbar
-        if (settings.triggerDirection.indexOf('y') >= 0)
-        {
-            my.scrollbar.top = document.createElement('span');
-            scrollbar.appendChild(my.scrollbar.top);
-            _addClass(my.scrollbar.top, 'is-top');
-        }
-
-        return my.scrollbar;
-    };
-
-    /**
-     * Returns the total scrollable height.
-     *
-     * @private
-     */
-    function getScrollableHeight ()
-    {
-        return my.content.offsetHeight - my.stage.offsetHeight;
-    };
-
-    /**
-     * Returns the total scrollable width.
-     *
-     * @private
-     */
-    function getScrollableWidth ()
-    {
-        return my.content.offsetWidth - my.stage.offsetWidth;
-    };
-
-    /**
-     * Returns the mouse position within the trigger area.
-     *
-     * @private
-     * @param {object} e Mouse moving event.
-     */
-    function getMousePosition (e)
-    {
-        /**
-         * normalizing the offsetX, offsetY. thanks jack moore!
-         * @see http://www.jacklmoore.com/notes/mouse-position/
-         */
-        e = e || window.event;
-
-        var style = my.trigger.currentStyle || window.getComputedStyle(my.trigger, null),
-            rect = my.trigger.getBoundingClientRect(),
-
-            // trigger element borders
-            border = {
-                left: parseInt(style.borderLeftWidth, 10) || 0,
-                right: parseInt(style.borderRightWidth, 10) || 0,
-                top: parseInt(style.borderTopWidth, 10) || 0,
-                bottom: parseInt(style.borderBottomWidth, 10) || 0
-            },
-
-            // the border width and offset needs to be subtracted from the mouse position
-            gap = {
-                left: rect.left + border.left,
-                right: border.left + border.right,
-                bottom: border.top + border.bottom,
-                top: rect.top + border.top
-            };
-
-        // retrieve value between 0 > value <= rect.{width,height}
-        return {
-            x: (settings.triggerDirection.indexOf('x') >= 0) ? Math.min(Math.max(0, e.clientX - gap.left), rect.width - gap.right) : 0,
-            y: (settings.triggerDirection.indexOf('y') >= 0) ? Math.min(Math.max(0, e.clientY - gap.top), rect.height - gap.bottom) : 0
-        };
-    };
-
-    /**
-     * Returns the fake mouse position which is adjusted to the set padding and
-     * mapped to the stage position.
-     *
-     * @private
-     */
-    function getFakeMousePosition ()
-    {
-        // retrieve value between 0 > value <= rect.{width,height}
-        return {
-            x: (settings.triggerDirection.indexOf('x') >= 0) ? Math.min(Math.max(0, mouse.real.x - settings.mousePadding), mouse.moveArea.width) * ratio.moveAreaToContent.width : 0,
-            y: (settings.triggerDirection.indexOf('y') >= 0) ? Math.min(Math.max(0, mouse.real.y - settings.mousePadding), mouse.moveArea.height) * ratio.moveAreaToContent.height : 0
-        };
-    };
-
-    /**
-     * Updates the size of the content element according the the calculated
-     * width and height.
-     *
-     * @private
-     */
-    function updateContentSize ()
-    {
-        _debug('Updating content container size.');
-
-        // set content width
-        my.content.style.width = Fluffy.getContentWidth() + 'px';
-
-        // if y-axis should be triggered or smart height is enabled
-        // set stage height aswell
-        if (settings.triggerDirection.indexOf('y') >= 0 || settings.smartHeight !== false)
-            my.content.style.height = Fluffy.getContentHeight()[(settings.smartHeight === 'smallest') ? 0 : 1] + 'px';
-    };
-
-    /**
-     * Updates the position of the scrollbar relative to the current scrolled
-     * position within the content area.
-     *
-     * @private
-     */
-    function updateScrollbarPosition ()
-    {
-        if (!settings.showScrollbar)
-            return;
-
-        if (settings.triggerDirection.indexOf('x') >= 0)
-            my.scrollbar.left.style.left = my.stage.scrollLeft / getScrollableWidth() * (1 - my.scrollbar.left.offsetWidth / my.stage.offsetWidth) * 100 + '%';
-
-        if (settings.triggerDirection.indexOf('y') >= 0)
-            my.scrollbar.top.style.top = my.stage.scrollTop / getScrollableHeight() * (1 - my.scrollbar.top.offsetHeight / my.stage.offsetHeight) * 100 + '%';
-    };
-
-    /**
-     * Scrolls the stage to the given position according to the trigger axis set.
-     *
-     * @private
-     */
-    function scrollStageTo (pos)
-    {
-        if (settings.triggerDirection.indexOf('x') >= 0)
-            my.stage.scrollLeft = pos.x;
-
-        if (settings.triggerDirection.indexOf('y') >= 0)
-            my.stage.scrollTop = pos.y;
-    }
-
-    /**
-     * Runs several calculations needed for proper scrolling animation.
-     *
-     * @private
-     */
-    function calculateRatios ()
-    {
-        _debug('Calculating ratios.');
-
-        // available mousemove area
-        mouse.moveArea = {
-            width: my.trigger.offsetWidth - (settings.mousePadding * 2),
-            height: my.trigger.offsetHeight - (settings.mousePadding * 2)
-        };
-
-        // map position in moving area to content position
-        ratio.moveAreaToContent = {
-            width: getScrollableWidth() / mouse.moveArea.width,
-            height: getScrollableHeight() / mouse.moveArea.height
-        };
-    }
-
-    /**
-     * Registers all listeners needed in order to track mouse positioning,
-     * window resizing and scrolling calculations.
-     *
-     * @private
-     */
-    function registerListeners ()
-    {
-        // use native scrolling on touch device (see css)
-        if (isTouch)
-            _addClass(my.container, 'is-touch');
-
-        window.addEventListener('load', function ()
-        {
-            // remove loading state
-            if (my.container)
-                _removeClass(my.container, 'is-loading');
-
-            // update content sizes
-            updateContentSize();
-
-            // stop right here if touch device!
-            if (isTouch)
-                return;
-
-            // gimme fake scrollbar
-            if (settings.showScrollbar)
-            {
-                _addClass(my.container, 'has-scrollbar');
-
-                // update scrollbar position on scroll
-                my.stage.addEventListener('scroll', function (e) { updateScrollbarPosition(); });
-            }
-
-            // run important calculations
-            calculateRatios();
-
-            _debug('Registering event listeners.');
-
-            my.trigger.addEventListener('mousemove', function (e)
-            {
-                // start mouse observer if not already started
-                if (mouse.observer.status() === false)
-                    mouse.observer.start();
-
-                // get real mouse position in trigger area
-                mouse.real = getMousePosition(e);
-
-                // get fake mouse position (adjusted to set padding, mapped to stage position)
-                mouse.fake = getFakeMousePosition();
-            });
-
-            // start mouse observer
-            mouse.observer.start = function ()
-            {
-                _debug('Starting mouse observer.');
-
-                // add modifier to container that it's moving
-                _addClass(my.container, 'is-moving');
-
-                mouse.observer.process = _requestInterval(function()
-                {
-                    // make mouse move triggering more lazy
-                    var add = {
-                        x: (mouse.fake.x - mouse.last.x) / settings.mouseDamp,
-                        y: (mouse.fake.y - mouse.last.y) / settings.mouseDamp
-                    }
-
-                    // stop observing as no movement is going on
-                    if (mouse.observer.status() && Math.abs(add.x) < 0.001 && Math.abs(add.y) < 0.001)
-                    {
-                        // stop observing
-                        mouse.observer.stop();
-
-                        // remove modifier
-                        _removeClass(my.container, 'is-moving');
-                    }
-
-                    // scroll to new position
-                    scrollStageTo({
-                        x: (mouse.last.x += add.x),
-                        y: (mouse.last.y += add.y)
-                    });
-
-                }, 10);
-            }
-
-            // stop mouse observer
-            mouse.observer.stop = function ()
-            {
-                _debug('Stopping mouse observer.');
-                _clearInterval(mouse.observer.process);
-            }
-
-            // mouse observer status
-            mouse.observer.status = function () { return mouse.observer.process.run; }
+            console[type](line);
         });
 
-        // we're gonna debounce the resize event...
+        console.groupEnd();
+
+        return true;
+    }
+
+    /**
+     * Gets the DOM path of a given DOM node.
+     *
+     * @private
+     * @param {HTMLElement} currentNode DOM node.
+     * @return {String}
+     */
+    function _getDOMPath (currentNode)
+    {
+        // get dom path for debugging
+        var domPath = [];
+
+        do
+        {
+            var nodeSelector = currentNode.tagName.toLowerCase();
+
+            // add node id
+            if (currentNode.id)
+                nodeSelector += '#' + currentNode.id;
+
+            // add all classes
+            if (currentNode.className)
+                nodeSelector += '.' + [].join.call(currentNode.classList, '.');
+
+            domPath.push(nodeSelector);
+        }
+
+        while ((currentNode = currentNode.parentNode) instanceof HTMLElement);
+
+        return domPath.reverse().join(' > ');
+    }
+
+    /**
+     * Registers global listener to the resize event that will handle all
+     * instances of Fluffy.
+     */
+    function _registerResizeListener ()
+    {
+        // need a debouncer
         var debounce;
 
-        window.addEventListener('resize', function ()
+        window.addEventListener('resize', function (e)
         {
             // wait for it
             if (debounce)
                 clearTimeout(debounce);
 
-            debounce = setTimeout(function () {
-
-                // first update sizes then
-                updateContentSize();
-
-                // run important calculations
-                calculateRatios();
-
-                // update scrollbar if shown
-                updateScrollbarPosition();
+            debounce = setTimeout(function ()
+            {
+                fluffyObjects.forEach(function (fluffyObject)
+                {
+                    fluffyObject.updateContentSize();
+                    fluffyObject.updateContentPosition();
+                });
 
             }, 100);
-
         });
     }
+
+
+    /**
+     * This represents a single Fluffy object.
+     *
+     * @param {HTMLElement} containerNode A DOM node representing a Fluffy container.
+     */
+    var FluffyObject = function (containerNode)
+    {
+        /**
+         * This holds the Fluffy container.
+         *
+         * @type {HTMLElement}
+         */
+        this.container = null;
+
+        /**
+         * this holds the actual Fluffy content.
+         *
+         * @type {HTMLElement}
+         */
+        this.content = null;
+
+        /**
+         * This holds all child nodes of the Fluffy content.
+         *
+         * @type {NodeList}
+         */
+        this.items = null;
+
+        /**
+         * This holds the (separate) trigger element where the actual
+         * interaction between the input device and the Fluffy container
+         * happens. If no 'triggerSelector' has been provided the container
+         * itself will be used for triggering.
+         *
+         * @type {HTMLElement}
+         */
+        this.trigger = null;
+
+        /**
+         * This holds the available scrollbars of the Fluffy container.
+         *
+         * @type {Object}
+         */
+        this.scrollbars = {};
+
+        /**
+         * This holds all relevant information about the mouse position,
+         * including the MouseObserver.
+         *
+         * @type {Object}
+         */
+        this.mouse =
+        {
+            real: { x: 0, y: 0 },
+            fake: { x: 0, y: 0 },
+            last: { x: 0, y: 0 },
+            observer: null
+        };
+
+        /**
+         * This holds all relevant ratios needed for calculations.
+         *
+         * @type {Object}
+         */
+        this.ratios = {};
+
+        /**
+         * This holds the default settings as well as the user set settings.
+         *
+         * @type {Object}
+         */
+        this.settings = {};
+
+        /**
+         * This holds all cached sizes for all relevant DOM nodes.
+         *
+         * @type {Object}
+         */
+        this.sizes = {};
+
+        /**
+         * Removes text nodes and unneeded DOM elements from the content.
+         *
+         * @public
+         */
+        this.cleanContent = function ()
+        {
+            for (var i = 0; i < this.items.length; i++)
+            {
+                var current = this.items[i],
+                    next = current.nextSibling,
+                    prev = current.previousSibling,
+                    parent = current.parentNode;
+
+                // remove text nodes
+                if (current !== null && current.nodeType === 3)
+                    parent.removeChild(current);
+
+                if (prev !== null && prev.nodeType === 3)
+                    parent.removeChild(prev);
+
+                if (next !== null && next.nodeType === 3)
+                    parent.removeChild(next);
+            }
+        };
+
+        /**
+         * This method will do last preparations like adding scrollbars and
+         * setting important CSS styling.
+         *
+         * @public
+         */
+        this.prepare = function ()
+        {
+            // remove invisible DOM nodes and anything that could f*ck up the
+            // visual output of this instance
+            this.cleanContent();
+
+            // depending on the dimension to trigger the relevant scrollbars
+            // will be created and attached to the container
+            this.attachScrollbars();
+
+            // get mouse observer instance
+            this.mouse.observer = new MouseObserver(this);
+
+            // set important styling
+            this.container.style.overflow = 'hidden';
+
+            // adjust styling to touch devices
+            if (isTouch)
+            {
+                this.container.style.webkitOverflowScrolling = 'touch';
+                this.container.style.overflowX = this.settings.triggerDirection.indexOf('x') >= 0 ? 'scroll' : 'hidden';
+                this.container.style.overflowY = this.settings.triggerDirection.indexOf('y') >= 0 ? 'scroll' : 'hidden';
+            }
+        };
+
+        /**
+         * Attaches scrollbars to the container depending on which dimension
+         * should be triggered and if showScrollbars is set to true.
+         *
+         * @public
+         */
+        this.attachScrollbars = function ()
+        {
+            // scrollbar disabled
+            if (!this.settings.showScrollbars)
+                return;
+
+            var whichToCreate = [];
+
+            // add horizontal scrollbar
+            if (this.settings.triggerDirection.indexOf('x') >= 0)
+                whichToCreate.push('horizontal');
+
+            // add vertical scrollbar
+            if (this.settings.triggerDirection.indexOf('y') >= 0)
+                whichToCreate.push('vertical');
+
+            // create scrollbar container
+            var scrollbars = document.createElement('div');
+                scrollbars.setAttribute('data-fluffy-scrollbars', '');
+
+            for (var i = 0; i < whichToCreate.length; i++)
+            {
+                var scrollbar = document.createElement('span');
+                scrollbar.classList.add('is-' + whichToCreate[i]);
+
+                scrollbars.appendChild(scrollbar);
+                this.scrollbars[whichToCreate[i]] = scrollbar;
+            }
+
+            this.container.appendChild(scrollbars);
+            this.container.classList.add('has-scrollbar');
+        };
+
+        /**
+         * Returns the width of the container.
+         *
+         * @public
+         * @return {Number} In pixels.
+         */
+        this.getContainerWidth = function ()
+        {
+            return this.container.getBoundingClientRect().width;
+        };
+
+        /**
+         * Returns the height of the container.
+         *
+         * @public
+         * @return {Number} In pixels.
+         */
+        this.getContainerHeight = function ()
+        {
+            return this.container.getBoundingClientRect().height;
+        };
+
+        /**
+         * Returns the width of the trigger.
+         *
+         * @public
+         * @return {Number} In pixels.
+         */
+        this.getTriggerWidth = function ()
+        {
+            return this.trigger.getBoundingClientRect().width;
+        };
+
+        /**
+         * Returns the height of the trigger.
+         *
+         * @public
+         * @return {Number} In pixels.
+         */
+        this.getTriggerHeight = function ()
+        {
+            return this.trigger.getBoundingClientRect().height;
+        };
+
+        /**
+         * Returns the width of the scrollable content by summing up all item
+         * widths.
+         *
+         * @public
+         * @return {Number} In pixels.
+         */
+        this.getContentWidth = function ()
+        {
+            for (var i = 0, contentWidth = 0; i < this.items.length; i++)
+                contentWidth += this.items[i].getBoundingClientRect().width;
+
+            return contentWidth;
+        };
+
+        /**
+         * Returns the height of the scrollable content by summing up all item
+         * heights.
+         *
+         * @public
+         * @return {Number} In pixels.
+         */
+        this.getContentHeight = function ()
+        {
+            for (var i = 0, contentHeight = 0; i < this.items.length; i++)
+                contentHeight += this.items[i].getBoundingClientRect().height;
+
+            return contentHeight;
+        };
+
+        /**
+         * Returns the smart widths for a set of items in a Fluffy container.
+         * Smart hereby means the smallest, the average and the largest width.
+         *
+         * @public
+         * @return {Object}
+         */
+        this.getSmartWidth = function ()
+        {
+            var widths =
+            {
+                smallest: null,
+                largest: 0,
+                average: 0,
+            };
+
+            for (var i = 0; i < this.items.length; i++)
+            {
+                var width = 'naturalWidth' in this.items[i] ? this.items[i].naturalWidth : this.items[i].getBoundingClientRect().width;
+
+                widths.average += width;
+
+                if (width > widths.largest)
+                    widths.largest = width;
+
+                if (widths.smallest === null || width < widths.smallest)
+                    widths.smallest = width;
+            }
+
+            // get average width
+            widths.average /= this.items.length;
+
+            return widths;
+        };
+
+        /**
+         * Returns the smart heights for a set of items in a Fluffy container.
+         * Smart hereby means the smallest, the average and the largest height.
+         *
+         * @public
+         * @return {Object}
+         */
+        this.getSmartHeight = function ()
+        {
+            var heights =
+            {
+                smallest: null,
+                largest: 0,
+                average: 0,
+            };
+
+            for (var i = 0; i < this.items.length; i++)
+            {
+                var height = 'naturalHeight' in this.items[i] ? this.items[i].naturalHeight : this.items[i].getBoundingClientRect().height;
+
+                heights.average += height;
+
+                if (height > heights.largest)
+                    heights.largest = height;
+
+                if (heights.smallest === null || height < heights.smallest)
+                    heights.smallest = height;
+            }
+
+            // get average height
+            heights.average /= this.items.length;
+
+            return heights;
+        };
+
+        /**
+         * Returns the total scrollable height.
+         *
+         * @public
+         * @return {Number} In pixels.
+         */
+        this.getScrollableHeight = function ()
+        {
+            return this.getContentHeight() - this.getContainerHeight();
+        };
+
+        /**
+         * Returns the total scrollable width.
+         *
+         * @public
+         * @return {Number} In pixels.
+         */
+        this.getScrollableWidth = function ()
+        {
+            return this.getContentWidth() - this.getContainerWidth();
+        };
+
+        /**
+         * Returns the mouse position in pixels as an array within the trigger
+         * area.
+         *
+         * @public
+         * @param {Object} e Mouse moving event.
+         * @return {Array} An array holding the x, y position of the mouse.
+         */
+        this.getMousePosition = function (e)
+        {
+            /**
+             * normalizing the offsetX, offsetY. thanks jack moore!
+             * @see http://www.jacklmoore.com/notes/mouse-position/
+             */
+            e = e || window.event;
+
+            var style = this.trigger.currentStyle || window.getComputedStyle(this.trigger, null),
+                rect = this.trigger.getBoundingClientRect(),
+
+                // trigger element borders
+                border = {
+                    left: style.borderLeftWidth | 0,
+                    right: style.borderRightWidth | 0,
+                    top: style.borderTopWidth | 0,
+                    bottom: style.borderBottomWidth | 0
+                },
+
+                // the border width and offset needs to be subtracted from the
+                // mouse position
+                gap = {
+                    left: rect.left + border.left,
+                    right: border.left + border.right,
+                    bottom: border.top + border.bottom,
+                    top: rect.top + border.top
+                };
+
+            // retrieve value between 0 > value <= rect.{width,height}
+            return {
+                x: Math.min(Math.max(0, e.clientX - gap.left), rect.width - gap.right),
+                y: Math.min(Math.max(0, e.clientY - gap.top), rect.height - gap.bottom)
+            };
+        };
+
+        /**
+         * Returns the fake mouse position which is adjusted to the padding set
+         * and mapped to the content position.
+         *
+         * @public
+         * @return {Array} An array holding the x, y position of the mouse.
+         */
+        this.getFakeMousePosition = function ()
+        {
+            // retrieve value between 0 > value <= rect.{width,height}
+            return {
+                x: Math.min(Math.max(0, this.mouse.real.x - this.settings.mousePadding), this.sizes.moveArea.width) * this.ratios.moveAreaToContent.width,
+                y: Math.min(Math.max(0, this.mouse.real.y - this.settings.mousePadding), this.sizes.moveArea.height) * this.ratios.moveAreaToContent.height
+            };
+        };
+
+        /**
+         * Caches all sizes for several elements that are used in calculations.
+         *
+         * @public
+         */
+        this.cacheSizes = function ()
+        {
+            /**
+             * That's kind of a map for all sizes of all relevant DOM elements.
+             *
+             * @type {Object}
+             */
+            this.sizes =
+            {
+                container:
+                {
+                    width: this.getContainerWidth(),
+                    height: this.getContainerHeight()
+                },
+                content:
+                {
+                    width: this.getContentWidth(),
+                    height: this.getContentHeight()
+                },
+                scrollable:
+                {
+                    width: this.getScrollableWidth(),
+                    height: this.getScrollableHeight()
+                },
+                trigger:
+                {
+                    width: this.getTriggerWidth(),
+                    height: this.getTriggerHeight()
+                },
+                moveArea:
+                {
+                    width: this.getTriggerWidth() - (this.settings.mousePadding * 2),
+                    height: this.getTriggerHeight() - (this.settings.mousePadding * 2)
+                },
+                scrollbars:
+                {
+                    horizontal: this.settings.showScrollbars && this.scrollbars.horizontal ? this.scrollbars.horizontal.getBoundingClientRect() : null,
+                    vertical: this.settings.showScrollbars && this.scrollbars.vertical ? this.scrollbars.vertical.getBoundingClientRect() : null
+                }
+            };
+        };
+
+        /**
+         * Updates the size of the content element according the the calculated
+         * width and height.
+         *
+         * @public
+         */
+        this.updateContentSize = function ()
+        {
+            // any smart sizes requested?
+            if (this.settings.smartWidth && smartSize.indexOf(this.settings.smartWidth) >= 0)
+                this.content.style.width = this.getSmartWidth()[this.settings.smartWidth] + 'px';
+
+            if (this.settings.smartHeight && smartSize.indexOf(this.settings.smartHeight) >= 0)
+                this.content.style.height = this.getSmartHeight()[this.settings.smartHeight] + 'px';
+
+            // cache all sizes
+            this.cacheSizes();
+
+            // run important calculations
+            this.defineRatios();
+
+            if (this.settings.triggerDirection.indexOf('x') >= 0)
+                this.content.style.width = (this.ratios.containerToContent.width * 100 + 0.001).toFixed(maxDecimalPlaces) + '%';
+
+
+            if (this.settings.triggerDirection.indexOf('y') >= 0)
+                this.content.style.height = (this.ratios.containerToContent.height * 100 + 0.001).toFixed(maxDecimalPlaces) + '%';
+
+            // check if mouse position needs to be adjusted
+            if (screenSize.x !== window.innerWidth || screenSize.y !== window.innerHeight)
+            {
+                this.mouse.real =
+                {
+                    x: this.mouse.real.x * (window.innerWidth / screenSize.x),
+                    y: this.mouse.real.y * (window.innerHeight / screenSize.y),
+                };
+
+                screenSize =
+                {
+                    x: window.innerWidth,
+                    y: window.innerHeight
+                };
+
+                this.mouse.fake = this.getFakeMousePosition();
+            }
+        };
+
+        /**
+         * Scrolls the content to the given position according to the trigger
+         * dimension set.
+         *
+         * @public
+         */
+        this.updateContentPosition = function ()
+        {
+            // by default
+            var x = 0, y = 0;
+
+            if (this.settings.triggerDirection.indexOf('x') >= 0)
+                x = (this.mouse.last.x / this.sizes.scrollable.width * this.ratios.contentToScrollableArea.width * 100).toFixed(maxDecimalPlaces);
+
+            if (this.settings.triggerDirection.indexOf('y') >= 0)
+                y = (this.mouse.last.y / this.sizes.scrollable.height * this.ratios.contentToScrollableArea.height * 100).toFixed(maxDecimalPlaces);
+
+            this.content.style[shiftProperty] = 'translate(-' + x + '%, -' + y + '%)';
+        };
+
+        /**
+         * Updates the position of the scrollbar relative to the current
+         * scrolled position within the content area.
+         *
+         * @public
+         */
+        this.updateScrollbarPosition = function ()
+        {
+            if (!this.settings.showScrollbars)
+                return;
+
+            if (this.settings.triggerDirection.indexOf('x') >= 0)
+                this.scrollbars.horizontal.style.left = (this.mouse.last.x / this.sizes.scrollable.width * this.ratios.containerToScrollbarArea.width * 100).toFixed(maxDecimalPlaces) + '%';
+
+            if (this.settings.triggerDirection.indexOf('y') >= 0)
+                this.scrollbars.vertical.style.top = (this.mouse.last.y / this.sizes.scrollable.height * this.ratios.containerToScrollbarArea.height * 100).toFixed(maxDecimalPlaces) + '%';
+        };
+
+        /**
+         * Define several ratios needed for proper calculations.
+         *
+         * @public
+         */
+        this.defineRatios = function ()
+        {
+            // moving area to scrollable area
+            this.ratios.moveAreaToContent =
+            {
+                width: this.sizes.scrollable.width / this.sizes.moveArea.width,
+                height: this.sizes.scrollable.height / this.sizes.moveArea.height
+            };
+
+            // content to scrollable area
+            this.ratios.contentToScrollableArea =
+            {
+                width: this.sizes.scrollable.width / this.sizes.content.width,
+                height: this.sizes.scrollable.height / this.sizes.content.height
+            };
+
+            // container to content
+            this.ratios.containerToContent =
+            {
+                width: this.sizes.content.width / this.sizes.container.width,
+                height: this.sizes.content.height / this.sizes.container.height
+            };
+
+            // scrollbar to container
+            this.ratios.containerToScrollbarArea =
+            {
+                width: this.sizes.scrollbars.horizontal ? (this.sizes.container.width - this.sizes.scrollbars.horizontal.width) / this.sizes.container.width : 0,
+                height: this.sizes.scrollbars.vertical ? (this.sizes.container.height - this.sizes.scrollbars.vertical.height) / this.sizes.container.height : 0
+            };
+        };
+
+        /**
+         * Registers all listeners needed in order to track mouse positioning,
+         * window resizing and scrolling calculations.
+         *
+         * @public
+         */
+        this.registerEventListeners = function ()
+        {
+            window.addEventListener('load', function ()
+            {
+                // fluffy is ready
+                if (this.container)
+                    this.container.classList.add('is-ready');
+
+                // update content sizes
+                this.updateContentSize();
+
+                // stop right here if touch device!
+                if (isTouch)
+                    return;
+
+                this.trigger.addEventListener('mousemove', function (e)
+                {
+                    // start mouse observer if not already started
+                    if (this.mouse.observer.status() === false)
+                        this.mouse.observer.start();
+
+                    // get real mouse position in trigger area
+                    this.mouse.real = this.getMousePosition(e);
+
+                    // get fake mouse position (adjusted to set padding, mapped
+                    // to content position)
+                    this.mouse.fake = this.getFakeMousePosition();
+
+                }.bind(this));
+
+            }.bind(this));
+        };
+
+        /**
+         * That's the closure that is handling all the constructor logic and
+         * builds up all available properties.
+         */
+        (function ()
+        {
+            var contentNode = containerNode.querySelector('[data-fluffy-content]'),
+                triggerNode;
+
+            // container has no content, that's not good!
+            if (contentNode === null)
+                throw Error('\'' + _getDOMPath(containerNode) + '\' has no content and therefore will be ignored.');
+
+            // prepare settings for this object
+            var settings = {};
+
+            // custom settings provided
+            if (containerNode.hasAttribute('data-fluffy-options'))
+            {
+                // try to read the custom settings
+                try
+                {
+                    var options = JSON.parse(containerNode.getAttribute('data-fluffy-options'));
+
+                    // parsed options are in a wrong format
+                    if (typeof options !== 'object')
+                        _(['Skipping provided options for the following container as they\'re not of type Object. Using defaults instead.', containerNode], 'warn');
+
+                    // use given options
+                    else
+                        settings = options;
+                }
+                catch (e)
+                {
+                    _(['Trying to parse options for the following container has failed. Using defaults instead.', containerNode], 'warn');
+                }
+
+                // integrity checks for several options
+                if ('mousePadding' in settings && settings.mousePadding < 0)
+                    settings.mousePadding = defaults.mousePadding;
+
+                if ('mouseDamp' in settings && settings.mouseDamp <= 0)
+                    settings.mouseDamp = defaults.mouseDamp;
+            }
+
+            // fill up missing settings with its default values
+            for (var key in defaults)
+                if (!(key in settings))
+                    settings[key] = defaults[key];
+
+            // fill properties
+            this.container = containerNode;
+            this.content = contentNode;
+            this.items = contentNode.childNodes;
+            this.trigger = settings.triggerSelector && (triggerNode = document.querySelector(settings.triggerSelector)) !== null ? triggerNode : containerNode;
+            this.settings = settings;
+
+            // time for last preparations
+            this.prepare();
+
+            // register final event listeners
+            this.registerEventListeners();
+
+        }).call(this);
+    };
+
+
+    /**
+     * The MouseObserver is an object which provides functionality to start,
+     * stop and get the current status of the observer. The observer itself is
+     * an interval in where several calculations regarding the mouse are
+     * happening and other parts are getting updated.
+     *
+     * @param {Object} fluffyObject A Fluffy object.
+     */
+    var MouseObserver = function (fluffyObject)
+    {
+        if (fluffyObject instanceof FluffyObject === false)
+            throw Error('MouseObserver expects first parameter to be an instance of FluffyObject. Instead ' + fluffyObject.constructor.name + ' was given.');
+
+        /**
+         * Behaves the same as setInterval except uses requestAnimationFrame()
+         * where possible for better performance.
+         *
+         * @private
+         * @param {function} fn The callback function.
+         * @param {int} delay The delay in milliseconds.
+         */
+        function _requestInterval (fn, delay)
+        {
+            var start = Date.now(),
+                handle = {};
+
+            function loop ()
+            {
+                handle.value = window.requestAnimationFrame(loop);
+
+                var current = Date.now(),
+                    delta = current - start;
+
+                if (delta >= delay)
+                {
+                    fn.call();
+                    start = Date.now();
+                }
+            }
+
+            handle.value = window.requestAnimationFrame(loop);
+
+            return handle;
+        }
+
+        /**
+         * Behaves the same as clearInterval except uses
+         * cancelRequestAnimationFrame() where possible for better performance.
+         *
+         * @private
+         * @param {int|object} fn The callback function.
+         */
+        function _clearInterval (handle)
+        {
+            window.cancelAnimationFrame(handle.value);
+        }
+
+        /**
+         * Starts the interval which runs last calculations on the mouse
+         * position and updates other relevant parts of Fluffy.
+         */
+        this.start = function ()
+        {
+            // add modifier to container that it's moving
+            fluffyObject.container.classList.add('is-moving');
+
+            this.id = _requestInterval(function()
+            {
+                // make mouse move triggering more lazy
+                var add = {
+                    x: (fluffyObject.mouse.fake.x - fluffyObject.mouse.last.x) / fluffyObject.settings.mouseDamp,
+                    y: (fluffyObject.mouse.fake.y - fluffyObject.mouse.last.y) / fluffyObject.settings.mouseDamp
+                };
+
+                // stop observing as no movement is going on
+                if (Math.abs(add.x) < 0.001 && Math.abs(add.y) < 0.001)
+                {
+                    // stop observing
+                    this.stop();
+
+                    // remove modifier
+                    fluffyObject.container.classList.remove('is-moving');
+                }
+
+                // update last mouse position
+                fluffyObject.mouse.last.x += add.x;
+                fluffyObject.mouse.last.y += add.y;
+
+                // scroll content to last position
+                fluffyObject.updateContentPosition();
+
+                // update scrollbar positions
+                fluffyObject.updateScrollbarPosition();
+
+            }.bind(this), 10);
+        };
+
+        /**
+         * Stops the interval and clears any status set.
+         */
+        this.stop = function ()
+        {
+            this.id = _clearInterval(this.id);
+        };
+
+        /**
+         * Returns a boolean value indicating whether the observer is running or
+         * not.
+         *
+         * @return {Boolean}
+         */
+        this.status = function ()
+        {
+            return typeof this.id === 'object';
+        };
+    };
+
+    /**
+     * Initialize Fluffy automatically.
+     */
+    (function ()
+    {
+        // build and check lifetime relevant things
+        try
+        {
+            // lacking features?
+            if (!featureSupport)
+                throw Error('Browser is lacking support for several requirements like: \'querySelector\', \'addEventListener\' or \'requestAnimationFrame\'.');
+
+            // since we're using CSS transforming to simulate the scrolling we need
+            // to get the supported (vendor prefixed) CSS property for it
+            shiftProperty = (function (prefixes)
+            {
+                var tmp = document.createElement('div');
+
+                for (var i = 0; i < prefixes.length; i++)
+                    if (prefixes[i] in tmp.style)
+                        return prefixes[i];
+
+                throw Error('Browser doesn\'t support CSS3 transforms.');
+
+            })(["transform", "msTransform", "MozTransform", "WebkitTransform", "OTransform"]);
+
+            // add global touch state modifier
+            if (isTouch)
+                document.documentElement.classList.add('is-touch');
+
+            // get all defined containers
+            var containers = document.querySelectorAll('[data-fluffy-container]');
+
+            // quit early if nothing found
+            if (containers.length === 0)
+                return;
+
+            // fill our stack
+            for (var i = 0; i < containers.length; i++)
+            {
+                try
+                {
+                    fluffyObjects.push(new FluffyObject(containers[i]));
+                }
+                catch (e)
+                {
+                    _(e.message, 'warn');
+                }
+            }
+        }
+
+        catch (e)
+        {
+            return _(e.message, 'error');
+        }
+
+        _registerResizeListener();
+
+    })();
+
 }).call(this);
