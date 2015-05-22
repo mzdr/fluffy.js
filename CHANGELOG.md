@@ -1,3 +1,7 @@
+# 2.0.1 (2015-05-22)
+
+- added Fluffy.js to Bower registry.
+
 # 2.0.0 (2015-02-08)
 
 Features:

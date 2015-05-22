@@ -1,11 +1,11 @@
-# Fluffy.js 2.0.0
+# Fluffy.js 2.0.1
 
 A simple, light and flexible JavaScript library that makes your content – no matter how big it is – fit in any screen! 
 
 – [http://mzdr.github.io/fluffy.js/](http://mzdr.github.io/fluffy.js/)
 
 Sebastian Prein  
-Copyright 2014, MIT License
+Copyright 2015, MIT License
 
 Contributions are greatly appreciated. Please fork this repository and open a pull request to add features, improvements, bugfixes etc.
 

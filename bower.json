@@ -1,0 +1,28 @@
+{
+  "name": "fluffy.js",
+  "version": "2.0.1",
+  "homepage": "https://github.com/mzdr/fluffy.js",
+  "authors": [
+    "mzdr <git@mzdr.it>"
+  ],
+  "description": "Makes sure your content – no matter how big it is – will fit in any screen!",
+  "main": "dist/fluffy.min.css, dist/fluffy.min.js",
+  "keywords": [
+    "gallery",
+    "interactive",
+    "portfolio",
+    "exploration",
+    "library",
+    "lightweight",
+    "slideshow",
+    "mousemove"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
