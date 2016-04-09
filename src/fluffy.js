@@ -1,4 +1,4 @@
-/*! Fluffy.js 2.0.1
+/*! Fluffy.js 2.0.2
  *
  * Sebastian Prein
  * Copyright 2015, MIT License
@@ -14,7 +14,7 @@
      *
      * @type {String}
      */
-    Fluffy.version = '2.0.1';
+    Fluffy.version = '2.0.2';
 
     /**
      * Simple detection of several features needed for Fluffy to run properly.
