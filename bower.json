@@ -1,12 +1,15 @@
 {
   "name": "fluffy.js",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "homepage": "https://github.com/mzdr/fluffy.js",
   "authors": [
-    "mzdr <git@mzdr.it>"
+    "Sebastian Prein <hi@sebastianprein.com>"
   ],
   "description": "Makes sure your content – no matter how big it is – will fit in any screen!",
-  "main": "dist/fluffy.min.css, dist/fluffy.min.js",
+  "main": [
+      "dist/fluffy.min.css",
+      "dist/fluffy.min.js"
+  ],
   "keywords": [
     "gallery",
     "interactive",
