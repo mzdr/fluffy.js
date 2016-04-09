@@ -1,4 +1,4 @@
-# Fluffy.js 2.0.1
+# Fluffy.js 2.0.2
 
 A simple, light and flexible JavaScript library that makes your content – no matter how big it is – fit in any screen! 
 
