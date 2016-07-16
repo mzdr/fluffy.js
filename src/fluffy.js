@@ -1,7 +1,7 @@
-/*! Fluffy.js 2.0.2
+/*! Fluffy.js 2.0.3
  *
  * Sebastian Prein
- * Copyright 2015, MIT License
+ * Copyright 2016, MIT License
  */
 (function ()
 {
@@ -14,7 +14,7 @@
      *
      * @type {String}
      */
-    Fluffy.version = '2.0.2';
+    Fluffy.version = '2.0.3';
 
     /**
      * Simple detection of several features needed for Fluffy to run properly.
@@ -1025,9 +1025,9 @@
     };
 
     /**
-     * Initialize Fluffy automatically.
+     * Initialize Fluffy automatically once the DOM is ready.
      */
-    (function ()
+    document.addEventListener("DOMContentLoaded", function(event)
     {
         // build and check lifetime relevant things
         try
@@ -1081,7 +1081,6 @@
         }
 
         _registerResizeListener();
-
-    })();
+    });
 
 }).call(this);

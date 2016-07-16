@@ -1,0 +1,34 @@
+{
+  "name": "fluffy.js",
+  "version": "2.0.3",
+  "description": "A simple, light and flexible JavaScript library that makes your content – no matter how big it is – fit in any screen!",
+  "main": "dist/fluffy.min.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mzdr/fluffy.js.git"
+  },
+  "dependencies": {},
+  "engines": {},
+  "keywords": [
+    "ui",
+    "scrolling",
+    "content",
+    "js",
+    "css3",
+    "simple",
+    "light",
+    "flexible",
+    "library",
+    "vanillajs"
+  ],
+  "author": "Sebastian Prein <hi@sebastianprein.com>",
+  "contributers": [{
+      "name": "Sebastian Prein",
+      "email": "hi@sebastianprein.com"
+  }],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mzdr/fluffy.js/issues"
+  },
+  "homepage": "https://github.com/mzdr/fluffy.js#readme"
+}
