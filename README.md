@@ -1,11 +1,11 @@
-# Fluffy.js 2.0.2
+# Fluffy.js 2.0.3
 
-A simple, light and flexible JavaScript library that makes your content – no matter how big it is – fit in any screen! 
+A simple, light and flexible JavaScript library that makes your content – no matter how big it is – fit in any screen!
 
 – [http://mzdr.github.io/fluffy.js/](http://mzdr.github.io/fluffy.js/)
 
 Sebastian Prein  
-Copyright 2015, MIT License
+Copyright 2016, MIT License
 
 Contributions are greatly appreciated. Please fork this repository and open a pull request to add features, improvements, bugfixes etc.
 
@@ -49,7 +49,7 @@ Since each Fluffy container is an instance on its own you're able to customize e
 For example if you don't want to have scrollbars and a separate trigger instead, it would look like this:
 
 ```html
-<div data-fluffy-container 
+<div data-fluffy-container
      data-fluffy-options='{"showScrollbars": false, "triggerSelector": "#my-trigger"}'>
     <div data-fluffy-content>
         <!-- your content -->
@@ -66,4 +66,3 @@ For example if you don't want to have scrollbars and a separate trigger instead,
 | triggerDirection | 'x' | Define which axis to trigger movement for.<br><br>Allowed values: *'x'*, *'y'*, *'xy'*. |
 | mouseDamp | 20 | The higher the value the more lazier the reaction to the mouse movement will be.<br><br>Allowed values: *[any positive number]* |
 | mousePadding | 60 | Adds space (in pixel) to the trigger area where no action happens.<br><br>Allowed values: *[any positive number]* |
-
