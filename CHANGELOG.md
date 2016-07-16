@@ -1,3 +1,9 @@
+# 2.0.3 (2016-07-16)
+
+Bugfixes:
+
+- Fluffy now waits for the DOM to finish before initializing itself
+
 # 2.0.2 (2016-04-09)
 
 - Fixed "main" tag in `bower.json`
