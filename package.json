@@ -1,6 +1,6 @@
 {
   "name": "fluffy.js",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "A simple, light and flexible JavaScript library that makes your content – no matter how big it is – fit in any screen!",
   "main": "dist/fluffy.min.js",
   "repository": {
@@ -21,7 +21,6 @@
     "library",
     "vanillajs"
   ],
-  "contributors": {},
   "author": "Sebastian Prein <hi@sebastianprein.com>",
   "contributers": [{
       "name": "Sebastian Prein",
