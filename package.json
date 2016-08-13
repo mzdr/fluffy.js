@@ -28,11 +28,16 @@
   },
   "homepage": "https://github.com/mzdr/fluffy.js#readme",
   "devDependencies": {
-    "node-sass": "^3.8.0"
+    "autoprefixer": "^6.4.0",
+    "node-sass": "^3.8.0",
+    "postcss-cli": "^2.5.2"
   },
   "scripts": {
-    "build": "npm run sass",
-    "sass": "node-sass --output-style compressed ./src/fluffy.scss ./dist/fluffy.min.css",
-    "sass:watch": "npm run sass -- --watch"
+    "build": "npm run sass && npm run postcss",
+    "postcss": "postcss --use autoprefixer -o dist/fluffy.min.css dist/fluffy.min.css",
+    "postcss:watch": "npm run postcss -- --watch",
+    "sass": "node-sass ./src/fluffy.scss ./dist/fluffy.min.css",
+    "sass:watch": "npm run sass -- --watch",
+    "watch": "npm run sass:watch | npm run postcss:watch"
   }
 }
