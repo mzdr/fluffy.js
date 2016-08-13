@@ -22,13 +22,17 @@
     "vanillajs"
   ],
   "author": "Sebastian Prein <hi@sebastianprein.com>",
-  "contributers": [{
-      "name": "Sebastian Prein",
-      "email": "hi@sebastianprein.com"
-  }],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/mzdr/fluffy.js/issues"
   },
-  "homepage": "https://github.com/mzdr/fluffy.js#readme"
+  "homepage": "https://github.com/mzdr/fluffy.js#readme",
+  "devDependencies": {
+    "node-sass": "^3.8.0"
+  },
+  "scripts": {
+    "build": "npm run sass",
+    "sass": "node-sass --output-style compressed ./src/fluffy.scss ./dist/fluffy.min.css",
+    "sass:watch": "npm run sass -- --watch"
+  }
 }
