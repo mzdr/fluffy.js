@@ -30,7 +30,8 @@
   "devDependencies": {
     "autoprefixer": "^6.4.0",
     "node-sass": "^3.8.0",
-    "postcss-cli": "^2.5.2"
+    "postcss-cli": "^2.5.2",
+    "uglify-js": "^2.7.0"
   },
   "scripts": {
     "build": "npm run sass && npm run postcss",
@@ -38,6 +39,7 @@
     "postcss:watch": "npm run postcss -- --watch",
     "sass": "node-sass ./src/fluffy.scss ./dist/fluffy.min.css",
     "sass:watch": "npm run sass -- --watch",
+    "js": "uglifyjs src/fluffy.js --compress --mangle --screw-ie8 --comments '/^!/' -o dist/fluffy.min.js",
     "watch": "npm run sass:watch | npm run postcss:watch"
   }
 }
