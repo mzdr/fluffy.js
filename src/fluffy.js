@@ -8,6 +8,22 @@
         module.exports = factory();
     } else {
         root.Fluffy = factory();
+
+        // in non-module mode we initialize Fluffy automatically,
+        // otherwise we would have breaking changes ;)
+        switch (document.readyState) {
+            case 'loading':
+            case 'interactive':
+                document.onreadystatechange = function onReadyStateChange() {
+                    if (document.readyState == 'complete') {
+                        root.Fluffy.detect();
+                    }
+                };
+            break;
+            case 'complete':
+                root.Fluffy.detect();
+            break;
+        }
     }
 })(this, function Fluffy() {
     'use strict';
@@ -820,7 +836,7 @@
          */
         this.registerEventListeners = function registerEventListeners() {
 
-            // fluffy is ready
+            // Fluffy is ready
             if (this.container) {
                 this.container.classList.add('is-ready');
             }
@@ -932,8 +948,8 @@
                     document.onreadystatechange = function onReadyStateChange() {
                         if (document.readyState == 'complete') {
                             this.registerEventListeners();
-                        };
-                    }.bind(this)
+                        }
+                    }.bind(this);
                 break;
                 case 'complete':
                     this.registerEventListeners();
@@ -1074,7 +1090,7 @@
             return;
         }
 
-        // check if there is already a fluffy object with the given container
+        // check if there is already a Fluffy object with the given container
         for (var i = 0; i < fluffyObjects.length; i++) {
             if (fluffyObjects[i].container === container) {
                 return;
