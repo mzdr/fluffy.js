@@ -1049,6 +1049,13 @@
             return;
         }
 
+        // check if there is already a fluffy object with the given container
+        for (var i = 0; i < fluffyObjects.length; i++) {
+            if (fluffyObjects[i].container === container) {
+                return;
+            }
+        }
+
         fluffyObjects.push(new FluffyObject(container));
     };
 
