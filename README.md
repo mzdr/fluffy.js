@@ -17,7 +17,7 @@ Now let me explain you how Fluffy works.
 
 1. Everything that is related to it gets into the **Fluffy container**. This helps Fluffy to correctly inject elements and classes for several states of execution.
 
-  *Notice: **If** you don't use automatic detection, you can use **any** selector you like. That means you don't have to stick to the data attribute.*
+  _Notice: **If** you don't use automatic detection, you can use **any** selector you like. That means you don't have to stick to the data attribute._
 
   ```html
   <div data-fluffy-container>
@@ -27,7 +27,7 @@ Now let me explain you how Fluffy works.
 
 2. Your actual content is an element with the `data-fluffy-content` attribute.
 
-  *Notice: The content element **does not** necessarily has to be the **direct child** of the container. But it's **recommended** to do it that way.*
+  _Notice: The content element **does not** necessarily has to be the **direct child** of the container. But it's **recommended** to do it that way._
 
   ```html
   <div data-fluffy-container>
