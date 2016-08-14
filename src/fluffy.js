@@ -168,6 +168,31 @@
     }
 
     /**
+     * Registers global listener to the resize event that will handle all
+     * instances of Fluffy.
+     */
+    function _registerResizeListener() {
+
+        // need a debouncer
+        var debounce;
+
+        window.addEventListener('resize', function onResize(e) {
+
+            // wait for it
+            if (debounce) {
+                clearTimeout(debounce);
+            }
+
+            debounce = setTimeout(function() {
+                for (var i = 0; i < fluffyObjects.length; i++) {
+                    fluffyObjects[i].updateContentSize();
+                    fluffyObjects[i].updateContentPosition();
+                }
+            }, 100);
+        });
+    }
+
+    /**
      * This represents a single Fluffy object.
      *
      * @param {HTMLElement} containerNode A DOM node representing a Fluffy container.
@@ -1112,6 +1137,8 @@
         if (isTouch) {
             document.documentElement.classList.add('is-touch');
         }
+
+        _registerResizeListener();
     })();
 
     return {
