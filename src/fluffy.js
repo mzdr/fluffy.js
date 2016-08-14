@@ -3,7 +3,7 @@
 // using https://github.com/umdjs/umd/blob/master/templates/returnExports.js
 (function register(root, factory) {
     if (typeof define === 'function' && define.amd) {
-        define(['Fluffy'], factory);
+        define('Fluffy', factory);
     } else if (typeof module === 'object' && module.exports) {
         module.exports = factory();
     } else {
