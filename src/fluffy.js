@@ -158,55 +158,13 @@
         // default console message is of type debug
         type = typeof type !== 'undefined' ? type : 'debug';
 
-        // pseudo type cast messages to array
-        messages = messages === null ? [] : (Array.isArray(messages) ? messages : [ messages ]);
-
         if (!window.console || !console[type]) {
             return true;
         }
 
-        console.group('Fluffy %c(%s)', 'font-style: italic; color: rgba(0, 0, 0, 0.25);', version);
-
-        messages.forEach(function printToConsole(line) {
-            console[type](line);
-        });
-
-        console.groupEnd();
+        console[type].call(window.console, messages);
 
         return true;
-    }
-
-    /**
-     * Gets the DOM path of a given DOM node.
-     *
-     * @private
-     * @param {HTMLElement} currentNode DOM node.
-     * @return {String}
-     */
-    function _getDOMPath(currentNode) {
-
-        // get dom path for debugging
-        var domPath = [];
-
-        do {
-
-            var nodeSelector = currentNode.tagName.toLowerCase();
-
-            // add node id
-            if (currentNode.id) {
-                nodeSelector += '#' + currentNode.id
-            };
-
-            // add all classes
-            if (currentNode.className) {
-                nodeSelector += '.' + [].join.call(currentNode.classList, '.')
-            };
-
-            domPath.push(nodeSelector);
-
-        } while ((currentNode = currentNode.parentNode) instanceof HTMLElement);
-
-        return domPath.reverse().join(' > ');
     }
 
     /**
@@ -876,7 +834,9 @@
 
             // container has no content, that's not good!
             if (contentNode === null) {
-                throw Error('\'' + _getDOMPath(containerNode) + '\' has no content and therefore will be ignored.');
+                _(containerNode, 'warn');
+                _('↳ Has no [data-fluffy-content] element and therefore will be ignored.', 'warn');
+                return;
             }
 
             // prepare settings for this object
@@ -891,14 +851,16 @@
 
                     // parsed options are in a wrong format
                     if (typeof options !== 'object') {
-                        _(['Skipping provided options for the following container as they\'re not of type Object. Using defaults instead.', containerNode], 'warn');
+                        _(containerNode, 'warn');
+                        _('↳ Fluffy options need to be of type object. Skipping for container above. Using defaults instead.', 'warn');
 
                     // use given options
                     } else {
                         settings = options;
                     }
                 } catch(e) {
-                    _(['Trying to parse options for the following container has failed. Using defaults instead.', containerNode], 'warn');
+                    _(containerNode, 'warn');
+                    _('↳ Trying to parse options for container above has failed. Using defaults instead.', 'warn');
                 }
 
                 // integrity checks for several options
@@ -1087,11 +1049,7 @@
             return;
         }
 
-        try {
-            fluffyObjects.push(new FluffyObject(container));
-        } catch(e) {
-            _(e.message, 'warn');
-        }
+        fluffyObjects.push(new FluffyObject(container));
     };
 
     /**
@@ -1113,8 +1071,10 @@
         }
     };
 
-    // build and check lifetime relevant things
-    try {
+    /**
+     * Build and check lifetime relevant things.
+     */
+    (function construct() {
 
         // lacking features?
         if (!featureSupport) {
@@ -1145,9 +1105,7 @@
         if (isTouch) {
             document.documentElement.classList.add('is-touch');
         }
-    } catch(e) {
-        return _(e.message, 'error');
-    }
+    })();
 
     return {
         create: create,
