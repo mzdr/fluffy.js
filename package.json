@@ -1,6 +1,6 @@
 {
   "name": "fluffy.js",
-  "version": "2.0.3",
+  "version": "2.1.0",
   "description": "A simple, light and flexible JavaScript library that makes your content – no matter how big it is – fit in any screen!",
   "main": "dist/fluffy.min.js",
   "repository": {
@@ -22,13 +22,25 @@
     "vanillajs"
   ],
   "author": "Sebastian Prein <hi@sebastianprein.com>",
-  "contributers": [{
-      "name": "Sebastian Prein",
-      "email": "hi@sebastianprein.com"
-  }],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/mzdr/fluffy.js/issues"
   },
-  "homepage": "https://github.com/mzdr/fluffy.js#readme"
+  "homepage": "https://github.com/mzdr/fluffy.js#readme",
+  "devDependencies": {
+    "autoprefixer": "^6.4.0",
+    "node-sass": "^3.8.0",
+    "postcss-cli": "^2.5.2",
+    "uglify-js": "^2.7.0"
+  },
+  "scripts": {
+    "build": "npm run sass:build && npm run postcss && npm run js",
+    "postcss": "postcss --use autoprefixer -o dist/fluffy.min.css dist/fluffy.min.css",
+    "postcss:watch": "npm run postcss -- --watch",
+    "sass": "node-sass ./src/fluffy.scss ./dist/fluffy.min.css",
+    "sass:build": "npm run sass -- --output-style compressed",
+    "sass:watch": "npm run sass -- --watch",
+    "js": "uglifyjs src/fluffy.js --compress --mangle --screw-ie8 --comments '/^!/' -o dist/fluffy.min.js",
+    "watch": "npm run sass:watch | npm run postcss:watch"
+  }
 }

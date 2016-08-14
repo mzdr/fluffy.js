@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Default Fluffy behaviour without any customizations</title>
+    <link rel="stylesheet" href="../dist/fluffy.min.css">
+    <style>
+        [data-fluffy-container] {
+            height: 300px;
+            margin: auto;
+            max-width: 100%;
+            min-height: 320px;
+            width: 960px;
+        }
+
+        [data-fluffy-content] img {
+            display: block;
+            float: left;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        img {
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div data-fluffy-container>
+        <div data-fluffy-content>
+            <img src="images/1.jpg" alt="">
+            <img src="images/2.jpg" alt="">
+            <img src="images/3.jpg" alt="">
+            <img src="images/4.jpg" alt="">
+            <img src="images/5.jpg" alt="">
+            <img src="images/6.jpg" alt="">
+            <img src="images/7.jpg" alt="">
+            <img src="images/8.jpg" alt="">
+        </div>
+    </div>
+
+    <!--
+    Since we are using Fluffy in a non-module environment it will automatically
+    initialize itself once the document has been fully loaded.
+    -->
+    <script src="../dist/fluffy.min.js"></script>
+</body>
+</html>

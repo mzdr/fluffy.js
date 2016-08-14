@@ -1,0 +1,102 @@
+[data-fluffy-container] {
+    background-color: rgba(255, 255, 255, 0.1);
+    position: relative;
+    transition: background-color 1s 600ms, opacity 600ms 600ms;
+    
+
+    &::after,
+    &::before {
+        background-color: rgba(0, 0, 0, 0.33);
+        border-radius: 50%;
+        box-shadow: inset 0 0 20px 20px rgba(255, 255, 255, 0.33);
+        content: "";
+        height: 20px;
+        left: 50%;
+        margin: -10px 0 0 -10px;
+        opacity: 1;
+        position: absolute;
+        top: 50%;
+        transition: opacity 300ms, visibility 0s 300ms;
+        visibility: visible;
+        width: 20px;
+        z-index: 1000;
+    }
+
+
+    &::after {
+        @at-root {
+            @keyframes moveRight {
+                to {
+                    transform: translateX(20px);
+                }
+            }
+        }
+
+        animation: moveRight 600ms linear infinite alternate;
+        transform: translateX(-20px);
+    }
+
+    &::before {
+        @at-root {
+            @keyframes moveLeft {
+                to {
+                    transform: translateX(-20px);
+                }
+            }
+        }
+
+        animation: moveLeft 600ms linear infinite alternate;
+        transform: translateX(20px);
+    }
+
+    &.is-ready {
+        background-color: transparent;
+
+        &::after,
+        &::before {
+            opacity: 0;
+            transition: opacity 300ms, visibility 0s 300ms;
+            visibility: hidden;
+        }
+    }
+
+    &.is-ready [data-fluffy-content],
+    &.is-moving [data-fluffy-scrollbars] {
+        opacity: 1;
+    }
+}
+
+[data-fluffy-scrollbars] {
+    opacity: 0;
+    transition: opacity 600ms;
+
+
+    .is-horizontal,
+    .is-vertical {
+        background-color: rgba(0, 0, 0, 0.66);
+        box-shadow: inset 0 0 20px 20px rgba(255, 255, 255, 0.66);
+        position: absolute;
+        top: 0;
+    }
+
+    .is-horizontal {
+        height: 3px;
+        left: 0;
+        width: 40px;
+    }
+
+    .is-vertical {
+        height: 40px;
+        right: 0;
+        width: 3px;
+    }
+}
+
+[data-fluffy-content] {
+    height: 100%;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    opacity: 0;
+    transition: opacity 600ms 600ms;
+}
