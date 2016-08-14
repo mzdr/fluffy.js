@@ -1,27 +1,32 @@
-/*! Fluffy.js 2.0.3
- *
- * Sebastian Prein
- * Copyright 2016, MIT License
- */
-(function ()
-{
-    'use strict';
+/*! Fluffy.js v2.1.0 | Sebastian Prein | Copyright 2016, MIT License */
 
-    window.Fluffy = {};
+// using https://github.com/umdjs/umd/blob/master/templates/returnExports.js
+(function register(root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        define(['Fluffy'], factory);
+    } else if (typeof module === 'object' && module.exports) {
+        module.exports = factory();
+    } else {
+        root.Fluffy = factory();
+    }
+})(this, function Fluffy() {
+    'use strict';
 
     /**
      * Fluffy version.
      *
      * @type {String}
      */
-    Fluffy.version = '2.0.3';
+    var version = '2.1.0';
 
     /**
      * Simple detection of several features needed for Fluffy to run properly.
      *
      * @type {Boolean}
      */
-    var featureSupport = !!document.querySelector && !!window.addEventListener && !!window.requestAnimationFrame;
+    var featureSupport = !!document.querySelector &&
+                         !!window.addEventListener &&
+                         !!window.requestAnimationFrame;
 
     /**
      * Simple detection if we're on a touch device or not. I know, not really
@@ -60,8 +65,8 @@
      *
      * @type {Object}
      */
-    var defaults =
-    {
+    var defaults = {
+
         /**
          * If no trigger selector is given, the Fluffy container is also
          * the trigger area.
@@ -128,8 +133,7 @@
      *
      * @type {Object}
      */
-    var screenSize =
-    {
+    var screenSize = {
         x: window.innerWidth,
         y: window.innerHeight
     };
@@ -149,21 +153,21 @@
      * @param {String} type Type of message. Could be 'warn', 'error', 'log' or 'debug' for example.
      * @return {Boolean}
      */
-    function _ (messages, type)
-    {
+    function _(messages, type) {
+
         // default console message is of type debug
         type = typeof type !== 'undefined' ? type : 'debug';
 
         // pseudo type cast messages to array
         messages = messages === null ? [] : (Array.isArray(messages) ? messages : [ messages ]);
 
-        if (!window.console || !console[type])
+        if (!window.console || !console[type]) {
             return true;
+        }
 
-        console.group('Fluffy %c(%s)', 'font-style: italic; color: rgba(0, 0, 0, 0.25);', Fluffy.version);
+        console.group('Fluffy %c(%s)', 'font-style: italic; color: rgba(0, 0, 0, 0.25);', version);
 
-        messages.forEach(function (line)
-        {
+        messages.forEach(function printToConsole(line) {
             console[type](line);
         });
 
@@ -179,66 +183,39 @@
      * @param {HTMLElement} currentNode DOM node.
      * @return {String}
      */
-    function _getDOMPath (currentNode)
-    {
+    function _getDOMPath(currentNode) {
+
         // get dom path for debugging
         var domPath = [];
 
-        do
-        {
+        do {
+
             var nodeSelector = currentNode.tagName.toLowerCase();
 
             // add node id
-            if (currentNode.id)
-                nodeSelector += '#' + currentNode.id;
+            if (currentNode.id) {
+                nodeSelector += '#' + currentNode.id
+            };
 
             // add all classes
-            if (currentNode.className)
-                nodeSelector += '.' + [].join.call(currentNode.classList, '.');
+            if (currentNode.className) {
+                nodeSelector += '.' + [].join.call(currentNode.classList, '.')
+            };
 
             domPath.push(nodeSelector);
-        }
 
-        while ((currentNode = currentNode.parentNode) instanceof HTMLElement);
+        } while ((currentNode = currentNode.parentNode) instanceof HTMLElement);
 
         return domPath.reverse().join(' > ');
     }
-
-    /**
-     * Registers global listener to the resize event that will handle all
-     * instances of Fluffy.
-     */
-    function _registerResizeListener ()
-    {
-        // need a debouncer
-        var debounce;
-
-        window.addEventListener('resize', function (e)
-        {
-            // wait for it
-            if (debounce)
-                clearTimeout(debounce);
-
-            debounce = setTimeout(function ()
-            {
-                fluffyObjects.forEach(function (fluffyObject)
-                {
-                    fluffyObject.updateContentSize();
-                    fluffyObject.updateContentPosition();
-                });
-
-            }, 100);
-        });
-    }
-
 
     /**
      * This represents a single Fluffy object.
      *
      * @param {HTMLElement} containerNode A DOM node representing a Fluffy container.
      */
-    var FluffyObject = function (containerNode)
-    {
+    function FluffyObject(containerNode) {
+
         /**
          * This holds the Fluffy container.
          *
@@ -283,8 +260,7 @@
          *
          * @type {Object}
          */
-        this.mouse =
-        {
+        this.mouse = {
             real: { x: 0, y: 0 },
             fake: { x: 0, y: 0 },
             last: { x: 0, y: 0 },
@@ -317,24 +293,25 @@
          *
          * @public
          */
-        this.cleanContent = function ()
-        {
-            for (var i = 0; i < this.items.length; i++)
-            {
-                var current = this.items[i],
-                    next = current.nextSibling,
-                    prev = current.previousSibling,
-                    parent = current.parentNode;
+        this.cleanContent = function cleanContent() {
+            for (var i = 0; i < this.items.length; i++) {
+                var current = this.items[i];
+                var next = current.nextSibling;
+                var prev = current.previousSibling;
+                var parent = current.parentNode;
 
                 // remove text nodes
-                if (current !== null && current.nodeType === 3)
+                if (current !== null && current.nodeType === 3) {
                     parent.removeChild(current);
+                }
 
-                if (prev !== null && prev.nodeType === 3)
+                if (prev !== null && prev.nodeType === 3) {
                     parent.removeChild(prev);
+                }
 
-                if (next !== null && next.nodeType === 3)
+                if (next !== null && next.nodeType === 3) {
                     parent.removeChild(next);
+                }
             }
         };
 
@@ -344,8 +321,8 @@
          *
          * @public
          */
-        this.prepare = function ()
-        {
+        this.prepare = function prepare() {
+
             // remove invisible DOM nodes and anything that could f*ck up the
             // visual output of this instance
             this.cleanContent();
@@ -361,8 +338,7 @@
             this.container.style.overflow = 'hidden';
 
             // adjust styling to touch devices
-            if (isTouch)
-            {
+            if (isTouch) {
                 this.container.style.webkitOverflowScrolling = 'touch';
                 this.container.style.overflowX = this.settings.triggerDirection.indexOf('x') >= 0 ? 'scroll' : 'hidden';
                 this.container.style.overflowY = this.settings.triggerDirection.indexOf('y') >= 0 ? 'scroll' : 'hidden';
@@ -375,28 +351,30 @@
          *
          * @public
          */
-        this.attachScrollbars = function ()
-        {
+        this.attachScrollbars = function attachScrollbars() {
+
             // scrollbar disabled
-            if (!this.settings.showScrollbars)
+            if (!this.settings.showScrollbars) {
                 return;
+            }
 
             var whichToCreate = [];
 
             // add horizontal scrollbar
-            if (this.settings.triggerDirection.indexOf('x') >= 0)
+            if (this.settings.triggerDirection.indexOf('x') >= 0) {
                 whichToCreate.push('horizontal');
+            }
 
             // add vertical scrollbar
-            if (this.settings.triggerDirection.indexOf('y') >= 0)
+            if (this.settings.triggerDirection.indexOf('y') >= 0) {
                 whichToCreate.push('vertical');
+            }
 
             // create scrollbar container
             var scrollbars = document.createElement('div');
                 scrollbars.setAttribute('data-fluffy-scrollbars', '');
 
-            for (var i = 0; i < whichToCreate.length; i++)
-            {
+            for (var i = 0; i < whichToCreate.length; i++) {
                 var scrollbar = document.createElement('span');
                 scrollbar.classList.add('is-' + whichToCreate[i]);
 
@@ -414,8 +392,7 @@
          * @public
          * @return {Number} In pixels.
          */
-        this.getContainerWidth = function ()
-        {
+        this.getContainerWidth = function getContainerWidth() {
             return this.container.getBoundingClientRect().width;
         };
 
@@ -425,8 +402,7 @@
          * @public
          * @return {Number} In pixels.
          */
-        this.getContainerHeight = function ()
-        {
+        this.getContainerHeight = function getContainerHeight() {
             return this.container.getBoundingClientRect().height;
         };
 
@@ -436,8 +412,7 @@
          * @public
          * @return {Number} In pixels.
          */
-        this.getTriggerWidth = function ()
-        {
+        this.getTriggerWidth = function getTriggerWidth() {
             return this.trigger.getBoundingClientRect().width;
         };
 
@@ -447,8 +422,7 @@
          * @public
          * @return {Number} In pixels.
          */
-        this.getTriggerHeight = function ()
-        {
+        this.getTriggerHeight = function getTriggerHeight() {
             return this.trigger.getBoundingClientRect().height;
         };
 
@@ -459,10 +433,10 @@
          * @public
          * @return {Number} In pixels.
          */
-        this.getContentWidth = function ()
-        {
-            for (var i = 0, contentWidth = 0; i < this.items.length; i++)
+        this.getContentWidth = function getContentWidth() {
+            for (var i = 0, contentWidth = 0; i < this.items.length; i++) {
                 contentWidth += this.items[i].getBoundingClientRect().width;
+            }
 
             return contentWidth;
         };
@@ -474,10 +448,10 @@
          * @public
          * @return {Number} In pixels.
          */
-        this.getContentHeight = function ()
-        {
-            for (var i = 0, contentHeight = 0; i < this.items.length; i++)
+        this.getContentHeight = function getContentHeight() {
+            for (var i = 0, contentHeight = 0; i < this.items.length; i++) {
                 contentHeight += this.items[i].getBoundingClientRect().height;
+            }
 
             return contentHeight;
         };
@@ -489,26 +463,27 @@
          * @public
          * @return {Object}
          */
-        this.getSmartWidth = function ()
-        {
-            var widths =
-            {
+        this.getSmartWidth = function getSmartWidth() {
+            var widths = {
                 smallest: null,
                 largest: 0,
                 average: 0,
             };
 
-            for (var i = 0; i < this.items.length; i++)
-            {
-                var width = 'naturalWidth' in this.items[i] ? this.items[i].naturalWidth : this.items[i].getBoundingClientRect().width;
+            for (var i = 0; i < this.items.length; i++) {
+                var width = 'naturalWidth' in this.items[i] ?
+                    this.items[i].naturalWidth :
+                    this.items[i].getBoundingClientRect().width;
 
                 widths.average += width;
 
-                if (width > widths.largest)
+                if (width > widths.largest) {
                     widths.largest = width;
+                }
 
-                if (widths.smallest === null || width < widths.smallest)
+                if (widths.smallest === null || width < widths.smallest) {
                     widths.smallest = width;
+                }
             }
 
             // get average width
@@ -524,26 +499,27 @@
          * @public
          * @return {Object}
          */
-        this.getSmartHeight = function ()
-        {
-            var heights =
-            {
+        this.getSmartHeight = function getSmartHeight() {
+            var heights = {
                 smallest: null,
                 largest: 0,
                 average: 0,
             };
 
-            for (var i = 0; i < this.items.length; i++)
-            {
-                var height = 'naturalHeight' in this.items[i] ? this.items[i].naturalHeight : this.items[i].getBoundingClientRect().height;
+            for (var i = 0; i < this.items.length; i++) {
+                var height = 'naturalHeight' in this.items[i] ?
+                    this.items[i].naturalHeight :
+                    this.items[i].getBoundingClientRect().height;
 
                 heights.average += height;
 
-                if (height > heights.largest)
+                if (height > heights.largest) {
                     heights.largest = height;
+                }
 
-                if (heights.smallest === null || height < heights.smallest)
+                if (heights.smallest === null || height < heights.smallest) {
                     heights.smallest = height;
+                }
             }
 
             // get average height
@@ -558,8 +534,7 @@
          * @public
          * @return {Number} In pixels.
          */
-        this.getScrollableHeight = function ()
-        {
+        this.getScrollableHeight = function getScrollableHeight() {
             return this.getContentHeight() - this.getContainerHeight();
         };
 
@@ -569,8 +544,7 @@
          * @public
          * @return {Number} In pixels.
          */
-        this.getScrollableWidth = function ()
-        {
+        this.getScrollableWidth = function getScrollableWidth() {
             return this.getContentWidth() - this.getContainerWidth();
         };
 
@@ -582,33 +556,34 @@
          * @param {Object} e Mouse moving event.
          * @return {Array} An array holding the x, y position of the mouse.
          */
-        this.getMousePosition = function (e)
-        {
+        this.getMousePosition = function getMousePosition(e) {
             /**
              * normalizing the offsetX, offsetY. thanks jack moore!
              * @see http://www.jacklmoore.com/notes/mouse-position/
              */
             e = e || window.event;
 
-            var style = this.trigger.currentStyle || window.getComputedStyle(this.trigger, null),
-                rect = this.trigger.getBoundingClientRect(),
+            var style = this.trigger.currentStyle ||
+                        window.getComputedStyle(this.trigger, null);
 
-                // trigger element borders
-                border = {
-                    left: style.borderLeftWidth | 0,
-                    right: style.borderRightWidth | 0,
-                    top: style.borderTopWidth | 0,
-                    bottom: style.borderBottomWidth | 0
-                },
+            var rect = this.trigger.getBoundingClientRect();
 
-                // the border width and offset needs to be subtracted from the
-                // mouse position
-                gap = {
-                    left: rect.left + border.left,
-                    right: border.left + border.right,
-                    bottom: border.top + border.bottom,
-                    top: rect.top + border.top
-                };
+            // trigger element borders
+            var border = {
+                left: style.borderLeftWidth | 0,
+                right: style.borderRightWidth | 0,
+                top: style.borderTopWidth | 0,
+                bottom: style.borderBottomWidth | 0
+            };
+
+            // the border width and offset needs to be subtracted from the
+            // mouse position
+            var gap = {
+                left: rect.left + border.left,
+                right: border.left + border.right,
+                bottom: border.top + border.bottom,
+                top: rect.top + border.top
+            };
 
             // retrieve value between 0 > value <= rect.{width,height}
             return {
@@ -624,12 +599,26 @@
          * @public
          * @return {Array} An array holding the x, y position of the mouse.
          */
-        this.getFakeMousePosition = function ()
-        {
+        this.getFakeMousePosition = function getFakeMousePosition() {
+
             // retrieve value between 0 > value <= rect.{width,height}
             return {
-                x: Math.min(Math.max(0, this.mouse.real.x - this.settings.mousePadding), this.sizes.moveArea.width) * this.ratios.moveAreaToContent.width,
-                y: Math.min(Math.max(0, this.mouse.real.y - this.settings.mousePadding), this.sizes.moveArea.height) * this.ratios.moveAreaToContent.height
+                x:
+                    Math.min(
+                        Math.max(
+                            0,
+                            this.mouse.real.x - this.settings.mousePadding
+                        ),
+                        this.sizes.moveArea.width
+                    ) * this.ratios.moveAreaToContent.width,
+                y:
+                    Math.min(
+                        Math.max(
+                            0,
+                            this.mouse.real.y - this.settings.mousePadding
+                        ),
+                        this.sizes.moveArea.height
+                    ) * this.ratios.moveAreaToContent.height
             };
         };
 
@@ -638,44 +627,44 @@
          *
          * @public
          */
-        this.cacheSizes = function ()
-        {
+        this.cacheSizes = function cacheSizes() {
             /**
              * That's kind of a map for all sizes of all relevant DOM elements.
              *
              * @type {Object}
              */
-            this.sizes =
-            {
-                container:
-                {
+            this.sizes = {
+                container: {
                     width: this.getContainerWidth(),
                     height: this.getContainerHeight()
                 },
-                content:
-                {
+                content: {
                     width: this.getContentWidth(),
                     height: this.getContentHeight()
                 },
-                scrollable:
-                {
+                scrollable: {
                     width: this.getScrollableWidth(),
                     height: this.getScrollableHeight()
                 },
-                trigger:
-                {
+                trigger: {
                     width: this.getTriggerWidth(),
                     height: this.getTriggerHeight()
                 },
-                moveArea:
-                {
+                moveArea: {
                     width: this.getTriggerWidth() - (this.settings.mousePadding * 2),
                     height: this.getTriggerHeight() - (this.settings.mousePadding * 2)
                 },
-                scrollbars:
-                {
-                    horizontal: this.settings.showScrollbars && this.scrollbars.horizontal ? this.scrollbars.horizontal.getBoundingClientRect() : null,
-                    vertical: this.settings.showScrollbars && this.scrollbars.vertical ? this.scrollbars.vertical.getBoundingClientRect() : null
+                scrollbars: {
+                    horizontal:
+                        this.settings.showScrollbars &&
+                        this.scrollbars.horizontal ?
+                        this.scrollbars.horizontal.getBoundingClientRect() :
+                        null,
+                    vertical:
+                        this.settings.showScrollbars &&
+                        this.scrollbars.vertical ?
+                        this.scrollbars.vertical.getBoundingClientRect() :
+                        null
                 }
             };
         };
@@ -686,14 +675,16 @@
          *
          * @public
          */
-        this.updateContentSize = function ()
-        {
-            // any smart sizes requested?
-            if (this.settings.smartWidth && smartSize.indexOf(this.settings.smartWidth) >= 0)
-                this.content.style.width = this.getSmartWidth()[this.settings.smartWidth] + 'px';
+        this.updateContentSize = function updateContentSize() {
 
-            if (this.settings.smartHeight && smartSize.indexOf(this.settings.smartHeight) >= 0)
+            // any smart sizes requested?
+            if (this.settings.smartWidth && smartSize.indexOf(this.settings.smartWidth) >= 0) {
+                this.content.style.width = this.getSmartWidth()[this.settings.smartWidth] + 'px';
+            }
+
+            if (this.settings.smartHeight && smartSize.indexOf(this.settings.smartHeight) >= 0) {
                 this.content.style.height = this.getSmartHeight()[this.settings.smartHeight] + 'px';
+            }
 
             // cache all sizes
             this.cacheSizes();
@@ -701,24 +692,31 @@
             // run important calculations
             this.defineRatios();
 
-            if (this.settings.triggerDirection.indexOf('x') >= 0)
-                this.content.style.width = (this.ratios.containerToContent.width * 100 + 0.001).toFixed(maxDecimalPlaces) + '%';
+            if (this.settings.triggerDirection.indexOf('x') >= 0) {
+                this.content.style.width = (
+                    this.ratios.containerToContent.width *
+                    100 +
+                    0.001
+                ).toFixed(maxDecimalPlaces) + '%';
+            }
 
 
-            if (this.settings.triggerDirection.indexOf('y') >= 0)
-                this.content.style.height = (this.ratios.containerToContent.height * 100 + 0.001).toFixed(maxDecimalPlaces) + '%';
+            if (this.settings.triggerDirection.indexOf('y') >= 0) {
+                this.content.style.height = (
+                    this.ratios.containerToContent.height *
+                    100 +
+                    0.001
+                ).toFixed(maxDecimalPlaces) + '%';
+            }
 
             // check if mouse position needs to be adjusted
-            if (screenSize.x !== window.innerWidth || screenSize.y !== window.innerHeight)
-            {
-                this.mouse.real =
-                {
+            if (screenSize.x !== window.innerWidth || screenSize.y !== window.innerHeight) {
+                this.mouse.real = {
                     x: this.mouse.real.x * (window.innerWidth / screenSize.x),
                     y: this.mouse.real.y * (window.innerHeight / screenSize.y),
                 };
 
-                screenSize =
-                {
+                screenSize = {
                     x: window.innerWidth,
                     y: window.innerHeight
                 };
@@ -733,18 +731,31 @@
          *
          * @public
          */
-        this.updateContentPosition = function ()
-        {
+        this.updateContentPosition = function updateContentPosition() {
+
             // by default
             var x = 0, y = 0;
 
-            if (this.settings.triggerDirection.indexOf('x') >= 0)
-                x = (this.mouse.last.x / this.sizes.scrollable.width * this.ratios.contentToScrollableArea.width * 100).toFixed(maxDecimalPlaces);
+            if (this.settings.triggerDirection.indexOf('x') >= 0) {
+                x = (
+                    this.mouse.last.x /
+                    this.sizes.scrollable.width *
+                    this.ratios.contentToScrollableArea.width *
+                    100
+                ).toFixed(maxDecimalPlaces);
+            }
 
-            if (this.settings.triggerDirection.indexOf('y') >= 0)
-                y = (this.mouse.last.y / this.sizes.scrollable.height * this.ratios.contentToScrollableArea.height * 100).toFixed(maxDecimalPlaces);
+            if (this.settings.triggerDirection.indexOf('y') >= 0) {
+                y = (
+                    this.mouse.last.y /
+                    this.sizes.scrollable.height *
+                    this.ratios.contentToScrollableArea.height *
+                    100
+                ).toFixed(maxDecimalPlaces);
+            }
 
-            this.content.style[shiftProperty] = 'translate(-' + x + '%, -' + y + '%)';
+            this.content.style[shiftProperty] =
+                'translate(-' + x + '%, -' + y + '%)';
         };
 
         /**
@@ -753,16 +764,29 @@
          *
          * @public
          */
-        this.updateScrollbarPosition = function ()
-        {
-            if (!this.settings.showScrollbars)
+        this.updateScrollbarPosition = function updateScrollbarPosition() {
+
+            if (!this.settings.showScrollbars) {
                 return;
+            }
 
-            if (this.settings.triggerDirection.indexOf('x') >= 0)
-                this.scrollbars.horizontal.style.left = (this.mouse.last.x / this.sizes.scrollable.width * this.ratios.containerToScrollbarArea.width * 100).toFixed(maxDecimalPlaces) + '%';
+            if (this.settings.triggerDirection.indexOf('x') >= 0) {
+                this.scrollbars.horizontal.style.left = (
+                    this.mouse.last.x /
+                    this.sizes.scrollable.width *
+                    this.ratios.containerToScrollbarArea.width *
+                    100
+                ).toFixed(maxDecimalPlaces) + '%';
+            }
 
-            if (this.settings.triggerDirection.indexOf('y') >= 0)
-                this.scrollbars.vertical.style.top = (this.mouse.last.y / this.sizes.scrollable.height * this.ratios.containerToScrollbarArea.height * 100).toFixed(maxDecimalPlaces) + '%';
+            if (this.settings.triggerDirection.indexOf('y') >= 0) {
+                this.scrollbars.vertical.style.top = (
+                    this.mouse.last.y /
+                    this.sizes.scrollable.height *
+                    this.ratios.containerToScrollbarArea.height *
+                    100
+                ).toFixed(maxDecimalPlaces) + '%';
+            }
         };
 
         /**
@@ -770,34 +794,38 @@
          *
          * @public
          */
-        this.defineRatios = function ()
-        {
+        this.defineRatios = function defineRatios() {
+
             // moving area to scrollable area
-            this.ratios.moveAreaToContent =
-            {
+            this.ratios.moveAreaToContent = {
                 width: this.sizes.scrollable.width / this.sizes.moveArea.width,
                 height: this.sizes.scrollable.height / this.sizes.moveArea.height
             };
 
             // content to scrollable area
-            this.ratios.contentToScrollableArea =
-            {
+            this.ratios.contentToScrollableArea = {
                 width: this.sizes.scrollable.width / this.sizes.content.width,
                 height: this.sizes.scrollable.height / this.sizes.content.height
             };
 
             // container to content
-            this.ratios.containerToContent =
-            {
+            this.ratios.containerToContent = {
                 width: this.sizes.content.width / this.sizes.container.width,
                 height: this.sizes.content.height / this.sizes.container.height
             };
 
             // scrollbar to container
-            this.ratios.containerToScrollbarArea =
-            {
-                width: this.sizes.scrollbars.horizontal ? (this.sizes.container.width - this.sizes.scrollbars.horizontal.width) / this.sizes.container.width : 0,
-                height: this.sizes.scrollbars.vertical ? (this.sizes.container.height - this.sizes.scrollbars.vertical.height) / this.sizes.container.height : 0
+            this.ratios.containerToScrollbarArea = {
+                width: this.sizes.scrollbars.horizontal ? (
+                    this.sizes.container.width -
+                    this.sizes.scrollbars.horizontal.width
+                ) / this.sizes.container.width :
+                    0,
+                height: this.sizes.scrollbars.vertical ?  (
+                    this.sizes.container.height -
+                    this.sizes.scrollbars.vertical.height
+                ) / this.sizes.container.height :
+                    0
             };
         };
 
@@ -807,35 +835,34 @@
          *
          * @public
          */
-        this.registerEventListeners = function ()
-        {
-            window.addEventListener('load', function ()
-            {
-                // fluffy is ready
-                if (this.container)
-                    this.container.classList.add('is-ready');
+        this.registerEventListeners = function registerEventListeners() {
 
-                // update content sizes
-                this.updateContentSize();
+            // fluffy is ready
+            if (this.container) {
+                this.container.classList.add('is-ready');
+            }
 
-                // stop right here if touch device!
-                if (isTouch)
-                    return;
+            // update content sizes
+            this.updateContentSize();
 
-                this.trigger.addEventListener('mousemove', function (e)
-                {
-                    // start mouse observer if not already started
-                    if (this.mouse.observer.status() === false)
-                        this.mouse.observer.start();
+            // stop right here if touch device!
+            if (isTouch) {
+                return;
+            }
 
-                    // get real mouse position in trigger area
-                    this.mouse.real = this.getMousePosition(e);
+            this.trigger.addEventListener('mousemove', function onMouseMove(e) {
 
-                    // get fake mouse position (adjusted to set padding, mapped
-                    // to content position)
-                    this.mouse.fake = this.getFakeMousePosition();
+                // start mouse observer if not already started
+                if (this.mouse.observer.status() === false) {
+                    this.mouse.observer.start();
+                }
 
-                }.bind(this));
+                // get real mouse position in trigger area
+                this.mouse.real = this.getMousePosition(e);
+
+                // get fake mouse position (adjusted to set padding, mapped
+                // to content position)
+                this.mouse.fake = this.getFakeMousePosition();
 
             }.bind(this));
         };
@@ -844,65 +871,87 @@
          * That's the closure that is handling all the constructor logic and
          * builds up all available properties.
          */
-        (function ()
-        {
-            var contentNode = containerNode.querySelector('[data-fluffy-content]'),
-                triggerNode;
+        (function construct() {
+            var contentNode = containerNode.querySelector('[data-fluffy-content]');
 
             // container has no content, that's not good!
-            if (contentNode === null)
+            if (contentNode === null) {
                 throw Error('\'' + _getDOMPath(containerNode) + '\' has no content and therefore will be ignored.');
+            }
 
             // prepare settings for this object
             var settings = {};
 
             // custom settings provided
-            if (containerNode.hasAttribute('data-fluffy-options'))
-            {
+            if (containerNode.hasAttribute('data-fluffy-options')) {
+
                 // try to read the custom settings
-                try
-                {
+                try {
                     var options = JSON.parse(containerNode.getAttribute('data-fluffy-options'));
 
                     // parsed options are in a wrong format
-                    if (typeof options !== 'object')
+                    if (typeof options !== 'object') {
                         _(['Skipping provided options for the following container as they\'re not of type Object. Using defaults instead.', containerNode], 'warn');
 
                     // use given options
-                    else
+                    } else {
                         settings = options;
-                }
-                catch (e)
-                {
+                    }
+                } catch(e) {
                     _(['Trying to parse options for the following container has failed. Using defaults instead.', containerNode], 'warn');
                 }
 
                 // integrity checks for several options
-                if ('mousePadding' in settings && settings.mousePadding < 0)
+                if ('mousePadding' in settings && settings.mousePadding < 0) {
                     settings.mousePadding = defaults.mousePadding;
+                }
 
-                if ('mouseDamp' in settings && settings.mouseDamp <= 0)
+                if ('mouseDamp' in settings && settings.mouseDamp <= 0) {
                     settings.mouseDamp = defaults.mouseDamp;
+                }
             }
 
             // fill up missing settings with its default values
-            for (var key in defaults)
-                if (!(key in settings))
+            for (var key in defaults) {
+                if (!(key in settings)) {
                     settings[key] = defaults[key];
+                }
+            }
 
             // fill properties
             this.container = containerNode;
             this.content = contentNode;
             this.items = contentNode.childNodes;
-            this.trigger = settings.triggerSelector && (triggerNode = document.querySelector(settings.triggerSelector)) !== null ? triggerNode : containerNode;
             this.settings = settings;
+            this.trigger = containerNode;
+
+            if (settings.triggerSelector) {
+                var triggerNode = document.querySelector(
+                    settings.triggerSelector
+                );
+
+                if (triggerNode !== null) {
+                    this.trigger = triggerNode;
+                }
+            }
 
             // time for last preparations
             this.prepare();
 
-            // register final event listeners
-            this.registerEventListeners();
-
+            // register final event listeners when document has been loaded
+            switch (document.readyState) {
+                case 'loading':
+                case 'interactive':
+                    document.onreadystatechange = function onReadyStateChange() {
+                        if (document.readyState == 'complete') {
+                            this.registerEventListeners();
+                        };
+                    }.bind(this)
+                break;
+                case 'complete':
+                    this.registerEventListeners();
+                break;
+            }
         }).call(this);
     };
 
@@ -915,10 +964,10 @@
      *
      * @param {Object} fluffyObject A Fluffy object.
      */
-    var MouseObserver = function (fluffyObject)
-    {
-        if (fluffyObject instanceof FluffyObject === false)
+    function MouseObserver(fluffyObject) {
+        if (fluffyObject instanceof FluffyObject === false) {
             throw Error('MouseObserver expects first parameter to be an instance of FluffyObject. Instead ' + fluffyObject.constructor.name + ' was given.');
+        }
 
         /**
          * Behaves the same as setInterval except uses requestAnimationFrame()
@@ -928,20 +977,17 @@
          * @param {function} fn The callback function.
          * @param {int} delay The delay in milliseconds.
          */
-        function _requestInterval (fn, delay)
-        {
-            var start = Date.now(),
-                handle = {};
+        function _requestInterval(fn, delay) {
+            var start = Date.now();
+            var handle = {};
 
-            function loop ()
-            {
+            function loop() {
                 handle.value = window.requestAnimationFrame(loop);
 
-                var current = Date.now(),
-                    delta = current - start;
+                var current = Date.now();
+                var delta = current - start;
 
-                if (delta >= delay)
-                {
+                if (delta >= delay) {
                     fn.call();
                     start = Date.now();
                 }
@@ -959,8 +1005,7 @@
          * @private
          * @param {int|object} fn The callback function.
          */
-        function _clearInterval (handle)
-        {
+        function _clearInterval(handle) {
             window.cancelAnimationFrame(handle.value);
         }
 
@@ -968,22 +1013,24 @@
          * Starts the interval which runs last calculations on the mouse
          * position and updates other relevant parts of Fluffy.
          */
-        this.start = function ()
-        {
+        this.start = function start() {
+
             // add modifier to container that it's moving
             fluffyObject.container.classList.add('is-moving');
 
-            this.id = _requestInterval(function()
-            {
+            this.id = _requestInterval(function() {
+
                 // make mouse move triggering more lazy
                 var add = {
-                    x: (fluffyObject.mouse.fake.x - fluffyObject.mouse.last.x) / fluffyObject.settings.mouseDamp,
-                    y: (fluffyObject.mouse.fake.y - fluffyObject.mouse.last.y) / fluffyObject.settings.mouseDamp
+                    x: (fluffyObject.mouse.fake.x - fluffyObject.mouse.last.x) /
+                        fluffyObject.settings.mouseDamp,
+                    y: (fluffyObject.mouse.fake.y - fluffyObject.mouse.last.y) /
+                        fluffyObject.settings.mouseDamp
                 };
 
                 // stop observing as no movement is going on
-                if (Math.abs(add.x) < 0.001 && Math.abs(add.y) < 0.001)
-                {
+                if (Math.abs(add.x) < 0.001 && Math.abs(add.y) < 0.001) {
+
                     // stop observing
                     this.stop();
 
@@ -1007,80 +1054,104 @@
         /**
          * Stops the interval and clears any status set.
          */
-        this.stop = function ()
-        {
+        this.stop = function stop() {
             this.id = _clearInterval(this.id);
         };
 
         /**
-         * Returns a boolean value indicating whether the observer is running or
-         * not.
+         * Returns a boolean value indicating whether the observer is running
+         * or not.
          *
          * @return {Boolean}
          */
-        this.status = function ()
-        {
+        this.status = function status() {
             return typeof this.id === 'object';
         };
     };
 
+
     /**
-     * Initialize Fluffy automatically once the DOM is ready.
+     * Creates a Fluffy instance.
+     *
+     * @param {string|HTMLElement} reference
      */
-    document.addEventListener("DOMContentLoaded", function(event)
-    {
-        // build and check lifetime relevant things
-        try
-        {
-            // lacking features?
-            if (!featureSupport)
-                throw Error('Browser is lacking support for several requirements like: \'querySelector\', \'addEventListener\' or \'requestAnimationFrame\'.');
+    function create(reference) {
+        var container = reference;
 
-            // since we're using CSS transforming to simulate the scrolling we need
-            // to get the supported (vendor prefixed) CSS property for it
-            shiftProperty = (function (prefixes)
-            {
-                var tmp = document.createElement('div');
+        if (typeof reference === 'string') {
+            container = document.querySelector(reference);
+        }
 
-                for (var i = 0; i < prefixes.length; i++)
-                    if (prefixes[i] in tmp.style)
-                        return prefixes[i];
+        // quit early if nothing found
+        if (container === null) {
+            return;
+        }
 
-                throw Error('Browser doesn\'t support CSS3 transforms.');
+        try {
+            fluffyObjects.push(new FluffyObject(container));
+        } catch(e) {
+            _(e.message, 'warn');
+        }
+    };
 
-            })(["transform", "msTransform", "MozTransform", "WebkitTransform", "OTransform"]);
+    /**
+     * Automatically detects any Fluffy markup and creates according instances.
+     */
+    function detect() {
 
-            // add global touch state modifier
-            if (isTouch)
-                document.documentElement.classList.add('is-touch');
+        // get all defined containers
+        var containers = document.querySelectorAll('[data-fluffy-container]');
 
-            // get all defined containers
-            var containers = document.querySelectorAll('[data-fluffy-container]');
+        // quit early if nothing found
+        if (containers.length === 0) {
+            return;
+        }
 
-            // quit early if nothing found
-            if (containers.length === 0)
-                return;
+        // fill our stack
+        for (var i = 0; i < containers.length; i++) {
+            create(containers[i]);
+        }
+    };
 
-            // fill our stack
-            for (var i = 0; i < containers.length; i++)
-            {
-                try
-                {
-                    fluffyObjects.push(new FluffyObject(containers[i]));
-                }
-                catch (e)
-                {
-                    _(e.message, 'warn');
+    // build and check lifetime relevant things
+    try {
+
+        // lacking features?
+        if (!featureSupport) {
+            throw Error('Browser is lacking support for several requirements like: \'querySelector\', \'addEventListener\' or \'requestAnimationFrame\'.');
+        }
+
+        // since we're using CSS transforming to simulate the scrolling we need
+        // to get the supported (vendor prefixed) CSS property for it
+        shiftProperty = (function getShiftProperty(prefixes) {
+            var tmp = document.createElement('div');
+
+            for (var i = 0; i < prefixes.length; i++) {
+                if (prefixes[i] in tmp.style) {
+                    return prefixes[i];
                 }
             }
+
+            throw Error('Browser doesn\'t support CSS3 transforms.');
+        })([
+            'transform',
+            'msTransform',
+            'MozTransform',
+            'WebkitTransform',
+            'OTransform'
+        ]);
+
+        // add global touch state modifier
+        if (isTouch) {
+            document.documentElement.classList.add('is-touch');
         }
+    } catch(e) {
+        return _(e.message, 'error');
+    }
 
-        catch (e)
-        {
-            return _(e.message, 'error');
-        }
-
-        _registerResizeListener();
-    });
-
-}).call(this);
+    return {
+        create: create,
+        detect: detect,
+        version: version
+    };
+});
