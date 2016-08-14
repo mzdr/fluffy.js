@@ -1,4 +1,4 @@
-/*! Fluffy.js v2.1.0 | Sebastian Prein | Copyright 2016, MIT License */
+/*! Fluffy.js v2.1.0 | (c) 2016 Sebastian Prein | http://mzdr.github.io/fluffy.js/ */
 
 // using https://github.com/umdjs/umd/blob/master/templates/returnExports.js
 (function register(root, factory) {
