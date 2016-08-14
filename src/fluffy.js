@@ -1,4 +1,4 @@
-/*! Fluffy.js v2.1.0 | (c) 2016 Sebastian Prein | http://mzdr.github.io/fluffy.js/ */
+/*! Fluffy.js v2.1.1 | (c) 2016 Sebastian Prein | http://mzdr.github.io/fluffy.js/ */
 
 // using https://github.com/umdjs/umd/blob/master/templates/returnExports.js
 (function register(root, factory) {
@@ -33,7 +33,7 @@
      *
      * @type {String}
      */
-    var version = '2.1.0';
+    var version = '2.1.1';
 
     /**
      * Simple detection of several features needed for Fluffy to run properly.
