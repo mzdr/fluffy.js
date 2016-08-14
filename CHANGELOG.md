@@ -1,3 +1,12 @@
+# 2.1.0 (2016-08-14)
+
+Features:
+
+- Added module support for AMD and Node
+- Added public .create() method
+- Added public .detect() method
+- Improved error handling and warnings to be more helpful
+
 # 2.0.3 (2016-07-16)
 
 Bugfixes:
@@ -8,7 +17,7 @@ Bugfixes:
 
 - Fixed "main" tag in `bower.json`
 
-# 2.0.2 (2015-05-22)
+# 2.0.1 (2015-05-22)
 
 - Added Fluffy.js to Bower registry.
 
