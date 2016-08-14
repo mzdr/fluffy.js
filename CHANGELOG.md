@@ -1,3 +1,7 @@
+# 2.1.1 (2016-08-14)
+
+Just fucked up last publish on NPM. -.-
+
 # 2.1.0 (2016-08-14)
 
 Features:
