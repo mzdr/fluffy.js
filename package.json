@@ -34,7 +34,7 @@
     "uglify-js": "^2.7.0"
   },
   "scripts": {
-    "build": "npm run sass && npm run postcss",
+    "build": "npm run sass && npm run postcss && npm run js",
     "postcss": "postcss --use autoprefixer -o dist/fluffy.min.css dist/fluffy.min.css",
     "postcss:watch": "npm run postcss -- --watch",
     "sass": "node-sass ./src/fluffy.scss ./dist/fluffy.min.css",
