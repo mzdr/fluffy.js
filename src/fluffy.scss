@@ -1,10 +1,8 @@
 [data-fluffy-container] {
     background-color: rgba(255, 255, 255, 0.1);
-    height: 50%;
-    margin: auto;
-    min-height: 320px;
     position: relative;
     transition: background-color 1s 600ms, opacity 600ms 600ms;
+    
 
     &::after,
     &::before {
@@ -95,6 +93,10 @@
 }
 
 [data-fluffy-content] {
+    height: 100%;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
     opacity: 0;
     transition: opacity 600ms 600ms;
 }
