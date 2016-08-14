@@ -34,10 +34,11 @@
     "uglify-js": "^2.7.0"
   },
   "scripts": {
-    "build": "npm run sass && npm run postcss && npm run js",
+    "build": "npm run sass:build && npm run postcss && npm run js",
     "postcss": "postcss --use autoprefixer -o dist/fluffy.min.css dist/fluffy.min.css",
     "postcss:watch": "npm run postcss -- --watch",
     "sass": "node-sass ./src/fluffy.scss ./dist/fluffy.min.css",
+    "sass:build": "npm run sass -- --output-style compressed",
     "sass:watch": "npm run sass -- --watch",
     "js": "uglifyjs src/fluffy.js --compress --mangle --screw-ie8 --comments '/^!/' -o dist/fluffy.min.js",
     "watch": "npm run sass:watch | npm run postcss:watch"
